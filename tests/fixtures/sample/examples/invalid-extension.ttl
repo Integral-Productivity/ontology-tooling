@@ -1,0 +1,8 @@
+@prefix ex:   <https://example.org/sample#> .
+@prefix exv:  <https://example.org/sample/vocab/> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+
+# No definition, and a next band outside its (missing) scheme.
+<urn:test:mauve> a skos:Concept , ex:Band ;
+    skos:prefLabel "Mauve"@en ;
+    ex:nextBand exv:blue .

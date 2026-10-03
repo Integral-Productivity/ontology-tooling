@@ -1,0 +1,26 @@
+@prefix mw:  <https://ontology.integralproductivity.com/metawork#> .
+@prefix mwv: <https://ontology.integralproductivity.com/metawork/vocab/> .
+@prefix ex:  <https://example.integralproductivity.com/groups/> .
+
+# An area-level group ("Overview (Vertical Development)" in the OmniFocus
+# backend) and a project-level group nested under it.
+
+ex:overview-vertical-development a mw:MetaWorkGroup ;
+    mw:subject "Vertical Development" ;
+    mw:lifeDomain "Vocational/Integral Productivity" ;
+    mw:horizonsOfFocus mwv:hof-20000ft ;
+    mw:systemStrata mwv:ss-5-10yr ;
+    mw:verticalDevelopmentStage mwv:vds-construct-aware ;
+    mw:cynefinDomain mwv:cyn-complex ;
+    mw:perspectiveCheck mwv:pc-reality , mwv:pc-purpose-and-principles , mwv:pc-envisioned-futures , mwv:pc-goals-and-objectives ;
+    mw:backend mwv:OmniFocusBackend .
+
+ex:metawork-ontology a mw:MetaWorkGroup ;
+    mw:subject "Meta Work ontology" ;
+    mw:lifeDomain "Vocational/Integral Productivity" ;
+    mw:parent ex:overview-vertical-development ;
+    mw:horizonsOfFocus mwv:hof-10000ft ;
+    mw:systemStrata mwv:ss-1-2yr ;
+    mw:verticalDevelopmentStage mwv:vds-self-questioning ;
+    mw:neurologicalLevel mwv:nl-capability ;
+    mw:backend mwv:MarkdownDirectoryBackend .

@@ -1,0 +1,9 @@
+@prefix ex:   <https://example.org/sample#> .
+@prefix exv:  <https://example.org/sample/vocab/> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+
+<urn:test:teal> a skos:Concept , ex:Band ;
+    skos:inScheme exv:Bands ;
+    skos:prefLabel "Teal"@en ;
+    skos:definition "Between green and blue."@en ;
+    ex:nextBand exv:blue .

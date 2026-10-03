@@ -1,0 +1,100 @@
+@prefix mw:   <https://ontology.integralproductivity.com/metawork#> .
+@prefix mwv:  <https://ontology.integralproductivity.com/metawork/vocab/> .
+@prefix mws:  <https://ontology.integralproductivity.com/metawork/shapes#> .
+@prefix sh:   <http://www.w3.org/ns/shacl#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+
+#############################################################################
+# SHACL shapes = fitness functions for Meta Work Group instance data.
+#
+# These mirror fixtures/metawork-group.schema.yaml (the plugin's JSON Schema)
+# but add what JSON Schema cannot say: that an axis value must be a concept
+# *in the named scheme*, and that parents must themselves be groups.
+# tests/test_schema_sync.py keeps the enums here and in the YAML identical.
+#############################################################################
+
+mws:MetaWorkGroupShape a sh:NodeShape ;
+    sh:targetClass mw:MetaWorkGroup ;
+    sh:name "Meta Work Group conformance"@en ;
+
+    sh:property [
+        sh:path mw:subject ;
+        sh:name "subject" ;
+        sh:datatype xsd:string ; sh:minCount 1 ; sh:maxCount 1 ; sh:minLength 1 ;
+        sh:message "A Meta Work Group must name exactly one Subject."@en ] ;
+
+    sh:property [
+        sh:path mw:lifeDomain ;
+        sh:name "life_domain" ;
+        sh:datatype xsd:string ; sh:minCount 1 ; sh:maxCount 1 ; sh:minLength 1 ;
+        sh:message "A Meta Work Group must have exactly one Life Domain (organizational placement)."@en ] ;
+
+    # ── three first-class axes: required, exactly one, must be in scheme ──
+    sh:property [
+        sh:path mw:horizonsOfFocus ;
+        sh:name "horizons_of_focus" ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:class skos:Concept ;
+        sh:node [ a sh:NodeShape ; sh:property [ sh:path skos:inScheme ; sh:hasValue mwv:HorizonsOfFocus ] ] ;
+        sh:message "horizons_of_focus is required and must be a concept in the Horizons of Focus scheme."@en ] ;
+
+    sh:property [
+        sh:path mw:systemStrata ;
+        sh:name "system_strata" ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:class skos:Concept ;
+        sh:node [ a sh:NodeShape ; sh:property [ sh:path skos:inScheme ; sh:hasValue mwv:SystemStrata ] ] ;
+        sh:message "system_strata is required and must be a concept in the System Strata scheme."@en ] ;
+
+    sh:property [
+        sh:path mw:verticalDevelopmentStage ;
+        sh:name "vertical_development_stage" ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:class skos:Concept ;
+        sh:node [ a sh:NodeShape ; sh:property [ sh:path skos:inScheme ; sh:hasValue mwv:VerticalDevelopmentStage ] ] ;
+        sh:message "vertical_development_stage is required and must be a concept in the Vertical Development Stage scheme."@en ] ;
+
+    # ── optional classifiers: at most one, must be in scheme if present ──
+    sh:property [
+        sh:path mw:cynefinDomain ;
+        sh:name "cynefin_domain" ;
+        sh:maxCount 1 ;
+        sh:class skos:Concept ;
+        sh:node [ a sh:NodeShape ; sh:property [ sh:path skos:inScheme ; sh:hasValue mwv:CynefinDomain ] ] ;
+        sh:message "cynefin_domain, if present, must be a concept in the Cynefin Domain scheme."@en ] ;
+
+    sh:property [
+        sh:path mw:neurologicalLevel ;
+        sh:name "neurological_level" ;
+        sh:maxCount 1 ;
+        sh:class skos:Concept ;
+        sh:node [ a sh:NodeShape ; sh:property [ sh:path skos:inScheme ; sh:hasValue mwv:NeurologicalLevel ] ] ;
+        sh:message "neurological_level, if present, must be a concept in the Neurological Level scheme."@en ] ;
+
+    # ── nesting ──
+    sh:property [
+        sh:path mw:parent ;
+        sh:name "parent" ;
+        sh:maxCount 1 ;
+        sh:class mw:MetaWorkGroup ;
+        sh:message "parent, if present, must itself be a Meta Work Group (panarchy nesting)."@en ] ;
+
+    sh:property [
+        sh:path mw:perspectiveCheck ;
+        sh:name "perspective_checks" ;
+        sh:class skos:Concept ;
+        sh:node [ a sh:NodeShape ; sh:property [ sh:path skos:inScheme ; sh:hasValue mwv:PerspectiveCheck ] ] ;
+        sh:message "perspective_checks must be concepts in the Perspective Check scheme."@en ] .
+
+# A group may not be its own parent (direct cycle). Deeper cycles are a
+# SPARQL-based constraint left for a later version.
+mws:NoSelfParentShape a sh:NodeShape ;
+    sh:targetClass mw:MetaWorkGroup ;
+    sh:sparql [
+        sh:message "A Meta Work Group may not be its own parent."@en ;
+        sh:prefixes <https://ontology.integralproductivity.com/metawork#> ;
+        sh:select """
+            PREFIX mw: <https://ontology.integralproductivity.com/metawork#>
+            SELECT $this WHERE { $this mw:parent $this . }
+        """ ] .

@@ -1,0 +1,30 @@
+@prefix mw:  <https://ontology.integralproductivity.com/metawork#> .
+@prefix mwv: <https://ontology.integralproductivity.com/metawork/vocab/> .
+@prefix ex:  <https://example.integralproductivity.com/groups/> .
+
+# Each group below breaks exactly one rule. tests/test_shapes.py asserts the
+# expected number of violations so that a loosened shape fails CI.
+
+# 1. Missing system_strata (required axis).
+ex:bad-missing-axis a mw:MetaWorkGroup ;
+    mw:subject "No strata" ;
+    mw:lifeDomain "Wellness/Sleep" ;
+    mw:horizonsOfFocus mwv:hof-runway ;
+    mw:verticalDevelopmentStage mwv:vds-self-determining .
+
+# 2. Axis value from the wrong scheme (a Cynefin concept where a horizon belongs).
+ex:bad-wrong-scheme a mw:MetaWorkGroup ;
+    mw:subject "Wrong scheme" ;
+    mw:lifeDomain "Wellness/Sleep" ;
+    mw:horizonsOfFocus mwv:cyn-complex ;
+    mw:systemStrata mwv:ss-1day-3mo ;
+    mw:verticalDevelopmentStage mwv:vds-self-determining .
+
+# 3. Self-parent.
+ex:bad-self-parent a mw:MetaWorkGroup ;
+    mw:subject "Ouroboros" ;
+    mw:lifeDomain "Existential/Self" ;
+    mw:parent ex:bad-self-parent ;
+    mw:horizonsOfFocus mwv:hof-50000ft ;
+    mw:systemStrata mwv:ss-200-500yr ;
+    mw:verticalDevelopmentStage mwv:vds-unitive .

@@ -1,0 +1,334 @@
+@prefix mw:      <https://ontology.integralproductivity.com/metawork#> .
+@prefix mwv:     <https://ontology.integralproductivity.com/metawork/vocab/> .
+@prefix skos:    <http://www.w3.org/2004/02/skos/core#> .
+@prefix rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl:     <http://www.w3.org/2002/07/owl#> .
+@prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix prov:    <http://www.w3.org/ns/prov#> .
+
+#############################################################################
+# Meta Work ontology — v0.1.0
+#
+# Layering (see ADR-0002):
+#   1. SKOS vocabulary  — every named concept, with definitions, provenance,
+#                         and the distinctions the methodology insists on.
+#   2. RDFS/OWL schema  — the handful of classes and properties a Meta Work
+#                         Group needs so that instance data can be validated.
+#   3. SHACL shapes     — in ../shapes/, not here. Shapes are the fitness
+#                         functions; the ontology says what exists, the shapes
+#                         say what a conforming instance must look like.
+#
+# Source of truth for definitions: metawork-claude-plugin/CONTEXT.md and
+# metawork-methodology/docs/. When they disagree with this file, this file is
+# wrong until an ADR says otherwise.
+#############################################################################
+
+<https://ontology.integralproductivity.com/metawork>
+    a owl:Ontology ;
+    dcterms:title "Meta Work ontology"@en ;
+    dcterms:description "A formal vocabulary and schema for the Meta Work methodology: the intentional practice of planning, monitoring, and maintaining perspective, instantiated per (scope, subject) as a Meta Work Group."@en ;
+    dcterms:creator "Integral Productivity LLC" ;
+    dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/> ;
+    owl:versionInfo "0.1.0" ;
+    prov:wasDerivedFrom <https://github.com/Integral-Productivity/metawork-claude-plugin/blob/main/CONTEXT.md> ,
+                        <https://github.com/Integral-Productivity/metawork-methodology> .
+
+#############################################################################
+# 1. SKOS — core concepts
+#############################################################################
+
+mwv:core a skos:ConceptScheme ;
+    skos:prefLabel "Meta Work core concepts"@en ;
+    skos:hasTopConcept mwv:MetaWork , mwv:MetaWorkGroup , mwv:Subject , mwv:Scope , mwv:LifeDomain , mwv:Pillar , mwv:Backend .
+
+mwv:MetaWork a skos:Concept ;
+    skos:inScheme mwv:core ;
+    skos:topConceptOf mwv:core ;
+    skos:prefLabel "Meta Work"@en ;
+    skos:notation "metawork" ;
+    skos:definition "A structured practice of intentional planning, monitoring, and perspective-maintenance, applied per (scope, subject). Capital-M; two words. Integrates eight v1 pillars."@en ;
+    skos:scopeNote "Not to be confused with lowercase 'meta-work' (escapist work-about-work) or 'Meta-Task' (a GTD task-processing-phase tag)."@en ;
+    skos:related mwv:EscapistMetaWork , mwv:MetaTask ;
+    dcterms:source <https://github.com/Integral-Productivity/metawork-claude-plugin/blob/main/CONTEXT.md> .
+
+mwv:EscapistMetaWork a skos:Concept ;
+    skos:inScheme mwv:core ;
+    skos:prefLabel "meta-work (escapist)"@en ;
+    skos:altLabel "yak-shaving"@en , "work-about-work-as-avoidance"@en ;
+    skos:notation "meta-work" ;
+    skos:definition "The casual, escapist sense of work about work as avoidance of the work itself. Same words as Meta Work, near-opposite meaning."@en ;
+    skos:scopeNote "Recorded so that tools can name the distinction explicitly. This concept is a contrast class, not a practice the methodology endorses."@en ;
+    skos:related mwv:MetaWork .
+
+mwv:MetaTask a skos:Concept ;
+    skos:inScheme mwv:core ;
+    skos:prefLabel "Meta-Task"@en ;
+    skos:definition "A GTD-style task-processing-phase tag (with children Task Preprocessing, Project Preprocessing, Task Processing, Task Postprocessing). Unrelated to Meta Work the methodology; recorded to prevent conflation."@en ;
+    skos:related mwv:MetaWork .
+
+mwv:MetaWorkGroup a skos:Concept ;
+    skos:inScheme mwv:core ;
+    skos:topConceptOf mwv:core ;
+    skos:prefLabel "Meta Work Group"@en ;
+    skos:altLabel "metawork-group"@en ;
+    skos:definition "A per-(scope, subject) instance of the methodology. The artifact. In OmniFocus: an action group named 'Meta Work' attached to a project. In the markdown backend: a .md file with YAML frontmatter conforming to the schema."@en ;
+    skos:scopeNote "Groups nest via a parent reference (project under area under domain). This is how the panarchy pillar is expressed in the data model."@en ;
+    skos:broader mwv:MetaWork .
+
+mwv:Subject a skos:Concept ;
+    skos:inScheme mwv:core ;
+    skos:topConceptOf mwv:core ;
+    skos:prefLabel "Subject"@en ;
+    skos:definition "The free-text name of what a Meta Work Group is about."@en ;
+    skos:example "Self; Career; Praxis platform; Race; Sleep"@en .
+
+mwv:Scope a skos:Concept ;
+    skos:inScheme mwv:core ;
+    skos:topConceptOf mwv:core ;
+    skos:prefLabel "Scope (multi-axial)"@en ;
+    skos:definition "The analytical position of a Meta Work Group on three first-class axes (Horizons of Focus, System Strata, Vertical Development Stage) plus two optional classifiers (Cynefin Domain, Neurological Level)."@en ;
+    skos:scopeNote "Distinct from Life Domain, which is organizational placement, not analytical position. See ADR-0004 in metawork-claude-plugin."@en ;
+    skos:narrower mwv:HorizonsOfFocus , mwv:SystemStrata , mwv:VerticalDevelopmentStage , mwv:CynefinDomain , mwv:NeurologicalLevel .
+
+mwv:LifeDomain a skos:Concept ;
+    skos:inScheme mwv:core ;
+    skos:topConceptOf mwv:core ;
+    skos:prefLabel "Life domain"@en ;
+    skos:definition "The organizational dimension: where a Meta Work Group lives. Top-level folders in the OmniFocus reference database (Vocational, Wellness, Familial, Spiritual, Existential, ...) and identity domains via the ADDRESSING model."@en ;
+    skos:example "Vocational/Praxis; Identity/Racial; Wellness/Sleep"@en ;
+    skos:related mwv:Scope .
+
+mwv:Backend a skos:Concept ;
+    skos:inScheme mwv:core ;
+    skos:topConceptOf mwv:core ;
+    skos:prefLabel "Backend"@en ;
+    skos:definition "Where Meta Work Group state lives for a user."@en ;
+    skos:narrower mwv:OmniFocusBackend , mwv:MarkdownDirectoryBackend .
+
+mwv:OmniFocusBackend a skos:Concept ; skos:inScheme mwv:core ; skos:broader mwv:Backend ;
+    skos:prefLabel "OmniFocus backend"@en ;
+    skos:definition "State lives as OmniFocus projects, action groups, and tags."@en .
+
+mwv:MarkdownDirectoryBackend a skos:Concept ; skos:inScheme mwv:core ; skos:broader mwv:Backend ;
+    skos:prefLabel "Markdown directory backend"@en ;
+    skos:definition "State lives as .md files, one per Meta Work Group, with YAML frontmatter."@en .
+
+mwv:Decision a skos:Concept ;
+    skos:inScheme mwv:core ;
+    skos:prefLabel "Decision (in a Meta Work Group)"@en ;
+    skos:altLabel "decision point"@en , "question being worked"@en ;
+    skos:definition "A decision or question the practitioner is actually working on inside a particular Meta Work Group, together with the Horizons of Focus altitude at which that decision is being made. Records how a group is used, as distinct from how it is scoped."@en ;
+    skos:scopeNote "Exists so that metawork-diagnose can detect a scope-axis mismatch: a group scoped at one horizons_of_focus being used to decide questions at another. A Decision is evidence about usage; it does not change the group's scope."@en ;
+    skos:related mwv:MetaWorkGroup , mwv:HorizonsOfFocus ;
+    dcterms:source <https://github.com/Integral-Productivity/metawork-claude-plugin/blob/main/skills/metawork-diagnose/SKILL.md> .
+
+#############################################################################
+# 1a. SKOS — the three first-class scope axes
+#############################################################################
+
+mwv:HorizonsOfFocus a skos:Concept , skos:ConceptScheme ;
+    skos:inScheme mwv:core ;
+    skos:broader mwv:Scope ;
+    skos:prefLabel "Horizons of Focus"@en ;
+    skos:definition "The granularity / altitude axis: how zoomed-in a Meta Work Group's altitude of concern is."@en ;
+    dcterms:source "David Allen, Getting Things Done (2001), 'Horizons of Focus'" ;
+    skos:hasTopConcept mwv:hof-50000ft , mwv:hof-40000ft , mwv:hof-30000ft , mwv:hof-20000ft , mwv:hof-10000ft , mwv:hof-runway .
+
+mwv:hof-50000ft a skos:Concept ; skos:inScheme mwv:HorizonsOfFocus ; skos:topConceptOf mwv:HorizonsOfFocus ;
+    skos:prefLabel "50,000 ft — Purpose & Principles"@en ; skos:notation "50000ft-purpose-principles" .
+mwv:hof-40000ft a skos:Concept ; skos:inScheme mwv:HorizonsOfFocus ; skos:topConceptOf mwv:HorizonsOfFocus ;
+    skos:prefLabel "40,000 ft — Vision"@en ; skos:notation "40000ft-vision" .
+mwv:hof-30000ft a skos:Concept ; skos:inScheme mwv:HorizonsOfFocus ; skos:topConceptOf mwv:HorizonsOfFocus ;
+    skos:prefLabel "30,000 ft — Goals & Objectives"@en ; skos:notation "30000ft-goals-objectives" .
+mwv:hof-20000ft a skos:Concept ; skos:inScheme mwv:HorizonsOfFocus ; skos:topConceptOf mwv:HorizonsOfFocus ;
+    skos:prefLabel "20,000 ft — Areas of Focus & Responsibility"@en ; skos:notation "20000ft-areas-focus-responsibility" .
+mwv:hof-10000ft a skos:Concept ; skos:inScheme mwv:HorizonsOfFocus ; skos:topConceptOf mwv:HorizonsOfFocus ;
+    skos:prefLabel "10,000 ft — Projects"@en ; skos:notation "10000ft-projects" .
+mwv:hof-runway a skos:Concept ; skos:inScheme mwv:HorizonsOfFocus ; skos:topConceptOf mwv:HorizonsOfFocus ;
+    skos:prefLabel "Runway"@en ; skos:notation "runway" .
+
+mwv:SystemStrata a skos:Concept , skos:ConceptScheme ;
+    skos:inScheme mwv:core ;
+    skos:broader mwv:Scope ;
+    skos:prefLabel "System Strata"@en ;
+    skos:definition "The temporal horizon axis: how far out the consequences of this work extend."@en ;
+    dcterms:source "A custom synthesis by Integral Productivity; cf. Elliott Jaques, Requisite Organization (time-span of discretion)" ;
+    skos:hasTopConcept mwv:ss-200-500yr , mwv:ss-100-200yr , mwv:ss-50-100yr , mwv:ss-20-50yr , mwv:ss-10-20yr , mwv:ss-5-10yr , mwv:ss-2-5yr , mwv:ss-1-2yr , mwv:ss-3mo-1yr , mwv:ss-1day-3mo .
+
+mwv:ss-200-500yr a skos:Concept ; skos:inScheme mwv:SystemStrata ; skos:topConceptOf mwv:SystemStrata ; skos:prefLabel "200–500 yr"@en ; skos:notation "200-500yr" .
+mwv:ss-100-200yr a skos:Concept ; skos:inScheme mwv:SystemStrata ; skos:topConceptOf mwv:SystemStrata ; skos:prefLabel "100–200 yr"@en ; skos:notation "100-200yr" .
+mwv:ss-50-100yr  a skos:Concept ; skos:inScheme mwv:SystemStrata ; skos:topConceptOf mwv:SystemStrata ; skos:prefLabel "50–100 yr"@en ;  skos:notation "50-100yr" .
+mwv:ss-20-50yr   a skos:Concept ; skos:inScheme mwv:SystemStrata ; skos:topConceptOf mwv:SystemStrata ; skos:prefLabel "20–50 yr"@en ;   skos:notation "20-50yr" .
+mwv:ss-10-20yr   a skos:Concept ; skos:inScheme mwv:SystemStrata ; skos:topConceptOf mwv:SystemStrata ; skos:prefLabel "10–20 yr"@en ;   skos:notation "10-20yr" .
+mwv:ss-5-10yr    a skos:Concept ; skos:inScheme mwv:SystemStrata ; skos:topConceptOf mwv:SystemStrata ; skos:prefLabel "5–10 yr"@en ;    skos:notation "5-10yr" .
+mwv:ss-2-5yr     a skos:Concept ; skos:inScheme mwv:SystemStrata ; skos:topConceptOf mwv:SystemStrata ; skos:prefLabel "2–5 yr"@en ;     skos:notation "2-5yr" .
+mwv:ss-1-2yr     a skos:Concept ; skos:inScheme mwv:SystemStrata ; skos:topConceptOf mwv:SystemStrata ; skos:prefLabel "1–2 yr"@en ;     skos:notation "1-2yr" .
+mwv:ss-3mo-1yr   a skos:Concept ; skos:inScheme mwv:SystemStrata ; skos:topConceptOf mwv:SystemStrata ; skos:prefLabel "3 mo – 1 yr"@en ; skos:notation "3mo-1yr" .
+mwv:ss-1day-3mo  a skos:Concept ; skos:inScheme mwv:SystemStrata ; skos:topConceptOf mwv:SystemStrata ; skos:prefLabel "1 day – 3 mo"@en ; skos:notation "1day-3mo" .
+
+mwv:VerticalDevelopmentStage a skos:Concept , skos:ConceptScheme ;
+    skos:inScheme mwv:core ;
+    skos:broader mwv:Scope ;
+    skos:prefLabel "Vertical Development Stage"@en ;
+    skos:definition "The developmental altitude axis: the meaning-making stage from which the practitioner is operating on this work. An 8-stage synthesis."@en ;
+    dcterms:source "Synthesis after Kegan (1994) and Cook-Greuter (2004); see metawork-methodology/docs/pillars/vertical-development.md" ;
+    skos:hasTopConcept mwv:vds-self-centric , mwv:vds-group-centric , mwv:vds-skill-centric , mwv:vds-self-determining , mwv:vds-self-questioning , mwv:vds-self-actualizing , mwv:vds-construct-aware , mwv:vds-unitive .
+
+mwv:vds-self-centric     a skos:Concept ; skos:inScheme mwv:VerticalDevelopmentStage ; skos:topConceptOf mwv:VerticalDevelopmentStage ; skos:prefLabel "Self-Centric"@en ;     skos:notation "self-centric" .
+mwv:vds-group-centric    a skos:Concept ; skos:inScheme mwv:VerticalDevelopmentStage ; skos:topConceptOf mwv:VerticalDevelopmentStage ; skos:prefLabel "Group-Centric"@en ;    skos:notation "group-centric" .
+mwv:vds-skill-centric    a skos:Concept ; skos:inScheme mwv:VerticalDevelopmentStage ; skos:topConceptOf mwv:VerticalDevelopmentStage ; skos:prefLabel "Skill-Centric"@en ;    skos:notation "skill-centric" .
+mwv:vds-self-determining a skos:Concept ; skos:inScheme mwv:VerticalDevelopmentStage ; skos:topConceptOf mwv:VerticalDevelopmentStage ; skos:prefLabel "Self-Determining"@en ; skos:notation "self-determining" .
+mwv:vds-self-questioning a skos:Concept ; skos:inScheme mwv:VerticalDevelopmentStage ; skos:topConceptOf mwv:VerticalDevelopmentStage ; skos:prefLabel "Self-Questioning"@en ; skos:notation "self-questioning" .
+mwv:vds-self-actualizing a skos:Concept ; skos:inScheme mwv:VerticalDevelopmentStage ; skos:topConceptOf mwv:VerticalDevelopmentStage ; skos:prefLabel "Self-Actualizing"@en ; skos:notation "self-actualizing" .
+mwv:vds-construct-aware  a skos:Concept ; skos:inScheme mwv:VerticalDevelopmentStage ; skos:topConceptOf mwv:VerticalDevelopmentStage ; skos:prefLabel "Construct-Aware"@en ;  skos:notation "construct-aware" .
+mwv:vds-unitive          a skos:Concept ; skos:inScheme mwv:VerticalDevelopmentStage ; skos:topConceptOf mwv:VerticalDevelopmentStage ; skos:prefLabel "Unitive"@en ;          skos:notation "unitive" .
+
+#############################################################################
+# 1b. SKOS — optional classifiers
+#############################################################################
+
+mwv:CynefinDomain a skos:Concept , skos:ConceptScheme ;
+    skos:inScheme mwv:core ;
+    skos:broader mwv:Scope ;
+    skos:prefLabel "Cynefin Domain"@en ;
+    skos:definition "Optional complexity classifier for the Meta Work Group's situation."@en ;
+    dcterms:source "Snowden & Boone (2007), 'A Leader's Framework for Decision Making', Harvard Business Review" ;
+    skos:hasTopConcept mwv:cyn-simple , mwv:cyn-complicated , mwv:cyn-complex , mwv:cyn-chaotic , mwv:cyn-disordered .
+
+mwv:cyn-simple      a skos:Concept ; skos:inScheme mwv:CynefinDomain ; skos:topConceptOf mwv:CynefinDomain ; skos:prefLabel "Simple"@en ;      skos:altLabel "Clear"@en , "Obvious"@en ; skos:notation "simple" .
+mwv:cyn-complicated a skos:Concept ; skos:inScheme mwv:CynefinDomain ; skos:topConceptOf mwv:CynefinDomain ; skos:prefLabel "Complicated"@en ; skos:notation "complicated" .
+mwv:cyn-complex     a skos:Concept ; skos:inScheme mwv:CynefinDomain ; skos:topConceptOf mwv:CynefinDomain ; skos:prefLabel "Complex"@en ;     skos:notation "complex" .
+mwv:cyn-chaotic     a skos:Concept ; skos:inScheme mwv:CynefinDomain ; skos:topConceptOf mwv:CynefinDomain ; skos:prefLabel "Chaotic"@en ;     skos:notation "chaotic" .
+mwv:cyn-disordered  a skos:Concept ; skos:inScheme mwv:CynefinDomain ; skos:topConceptOf mwv:CynefinDomain ; skos:prefLabel "Disordered"@en ;  skos:altLabel "Confused"@en ; skos:notation "disordered" .
+
+mwv:NeurologicalLevel a skos:Concept , skos:ConceptScheme ;
+    skos:inScheme mwv:core ;
+    skos:broader mwv:Scope ;
+    skos:prefLabel "Neurological Level"@en ;
+    skos:definition "Optional classifier for the logical level at which the Meta Work Group operates."@en ;
+    dcterms:source "Robert Dilts, Changing Belief Systems with NLP (1990), 'Neurological Levels'" ;
+    skos:hasTopConcept mwv:nl-environment , mwv:nl-behavior , mwv:nl-capability , mwv:nl-beliefs-values , mwv:nl-identity , mwv:nl-spiritual .
+
+mwv:nl-environment    a skos:Concept ; skos:inScheme mwv:NeurologicalLevel ; skos:topConceptOf mwv:NeurologicalLevel ; skos:prefLabel "Environment"@en ;      skos:notation "environment" .
+mwv:nl-behavior       a skos:Concept ; skos:inScheme mwv:NeurologicalLevel ; skos:topConceptOf mwv:NeurologicalLevel ; skos:prefLabel "Behavior"@en ;         skos:notation "behavior" .
+mwv:nl-capability     a skos:Concept ; skos:inScheme mwv:NeurologicalLevel ; skos:topConceptOf mwv:NeurologicalLevel ; skos:prefLabel "Capability"@en ;       skos:notation "capability" .
+mwv:nl-beliefs-values a skos:Concept ; skos:inScheme mwv:NeurologicalLevel ; skos:topConceptOf mwv:NeurologicalLevel ; skos:prefLabel "Beliefs & Values"@en ; skos:notation "beliefs-values" .
+mwv:nl-identity       a skos:Concept ; skos:inScheme mwv:NeurologicalLevel ; skos:topConceptOf mwv:NeurologicalLevel ; skos:prefLabel "Identity"@en ;         skos:notation "identity" .
+mwv:nl-spiritual      a skos:Concept ; skos:inScheme mwv:NeurologicalLevel ; skos:topConceptOf mwv:NeurologicalLevel ; skos:prefLabel "Spiritual"@en ;        skos:notation "spiritual" .
+
+#############################################################################
+# 1c. SKOS — pillars and perspective checks
+#############################################################################
+
+mwv:Pillar a skos:Concept , skos:ConceptScheme ;
+    skos:inScheme mwv:core ;
+    skos:topConceptOf mwv:core ;
+    skos:prefLabel "Pillar"@en ;
+    skos:definition "One of the bodies of practice that Meta Work integrates. Eight in v1."@en ;
+    skos:hasTopConcept mwv:pillar-gtd-natural-planning , mwv:pillar-living-forward , mwv:pillar-polarity-management , mwv:pillar-fitness-functions , mwv:pillar-radical-acceptance , mwv:pillar-panarchy , mwv:pillar-addressing , mwv:pillar-vertical-development .
+
+mwv:pillar-gtd-natural-planning a skos:Concept ; skos:inScheme mwv:Pillar ; skos:topConceptOf mwv:Pillar ;
+    skos:prefLabel "GTD Natural Planning Model"@en ; skos:notation "gtd-natural-planning" ;
+    dcterms:source "David Allen, Getting Things Done (2001)" .
+mwv:pillar-living-forward a skos:Concept ; skos:inScheme mwv:Pillar ; skos:topConceptOf mwv:Pillar ;
+    skos:prefLabel "Living Forward Life Plan"@en ; skos:notation "living-forward" ;
+    dcterms:source "Michael Hyatt & Daniel Harkavy, Living Forward (2016)" .
+mwv:pillar-polarity-management a skos:Concept ; skos:inScheme mwv:Pillar ; skos:topConceptOf mwv:Pillar ;
+    skos:prefLabel "Polarity Management"@en ; skos:notation "polarity-management" ;
+    dcterms:source "Barry Johnson, Polarity Management (1992)" .
+mwv:pillar-fitness-functions a skos:Concept ; skos:inScheme mwv:Pillar ; skos:topConceptOf mwv:Pillar ;
+    skos:prefLabel "Fitness Functions (applied personally)"@en ; skos:notation "fitness-functions" ;
+    dcterms:source "Ford, Parsons & Kua, Building Evolutionary Architectures (2017)" .
+mwv:pillar-radical-acceptance a skos:Concept ; skos:inScheme mwv:Pillar ; skos:topConceptOf mwv:Pillar ;
+    skos:prefLabel "Radical Acceptance / current-reality awareness"@en ; skos:notation "radical-acceptance" .
+mwv:pillar-panarchy a skos:Concept ; skos:inScheme mwv:Pillar ; skos:topConceptOf mwv:Pillar ;
+    skos:prefLabel "Panarchy & adaptive cycles"@en ; skos:notation "panarchy-and-adaptive-cycles" ;
+    dcterms:source "Gunderson & Holling (eds.), Panarchy (2002)" .
+mwv:pillar-addressing a skos:Concept ; skos:inScheme mwv:Pillar ; skos:topConceptOf mwv:Pillar ;
+    skos:prefLabel "ADDRESSING model"@en ; skos:notation "addressing-model" ;
+    dcterms:source "Pamela Hays, Addressing Cultural Complexities in Practice (2001)" .
+mwv:pillar-vertical-development a skos:Concept ; skos:inScheme mwv:Pillar ; skos:topConceptOf mwv:Pillar ;
+    skos:prefLabel "Vertical development"@en ; skos:notation "vertical-development" ;
+    dcterms:source "Kegan (1994); Cook-Greuter (2004); 8-stage synthesis by Integral Productivity" .
+
+mwv:PerspectiveCheck a skos:Concept , skos:ConceptScheme ;
+    skos:inScheme mwv:core ;
+    skos:prefLabel "Perspective check"@en ;
+    skos:definition "A daily check kind from the Living Forward Life Plan, run across active Meta Work Groups."@en ;
+    skos:broader mwv:pillar-living-forward ;
+    skos:hasTopConcept mwv:pc-reality , mwv:pc-purpose-and-principles , mwv:pc-envisioned-futures , mwv:pc-goals-and-objectives .
+
+mwv:pc-reality                a skos:Concept ; skos:inScheme mwv:PerspectiveCheck ; skos:topConceptOf mwv:PerspectiveCheck ; skos:prefLabel "Reality"@en ;                skos:notation "reality" .
+mwv:pc-purpose-and-principles a skos:Concept ; skos:inScheme mwv:PerspectiveCheck ; skos:topConceptOf mwv:PerspectiveCheck ; skos:prefLabel "Purpose and principles"@en ; skos:notation "purpose_and_principles" .
+mwv:pc-envisioned-futures     a skos:Concept ; skos:inScheme mwv:PerspectiveCheck ; skos:topConceptOf mwv:PerspectiveCheck ; skos:prefLabel "Envisioned futures"@en ;     skos:notation "envisioned_futures" .
+mwv:pc-goals-and-objectives   a skos:Concept ; skos:inScheme mwv:PerspectiveCheck ; skos:topConceptOf mwv:PerspectiveCheck ; skos:prefLabel "Goals and objectives"@en ;   skos:notation "goals_and_objectives" .
+
+#############################################################################
+# 2. RDFS/OWL schema — the minimum needed to validate instance data
+#############################################################################
+
+mw:MetaWorkGroup a owl:Class ;
+    rdfs:label "Meta Work Group"@en ;
+    rdfs:comment "An instance of the Meta Work methodology for one (scope, subject)."@en ;
+    rdfs:seeAlso mwv:MetaWorkGroup .
+
+mw:subject a owl:DatatypeProperty ;
+    rdfs:label "subject"@en ; rdfs:domain mw:MetaWorkGroup ; rdfs:range xsd:string ;
+    rdfs:seeAlso mwv:Subject .
+
+mw:lifeDomain a owl:DatatypeProperty ;
+    rdfs:label "life domain"@en ; rdfs:domain mw:MetaWorkGroup ; rdfs:range xsd:string ;
+    rdfs:comment "Organizational placement as a path, e.g. 'Vocational/Praxis'."@en ;
+    rdfs:seeAlso mwv:LifeDomain .
+
+mw:parent a owl:ObjectProperty ;
+    rdfs:label "parent"@en ; rdfs:domain mw:MetaWorkGroup ; rdfs:range mw:MetaWorkGroup ;
+    rdfs:comment "Panarchy nesting: the group this group nests under."@en .
+
+mw:horizonsOfFocus a owl:ObjectProperty ;
+    rdfs:label "horizons of focus"@en ; rdfs:domain mw:MetaWorkGroup ; rdfs:range skos:Concept ;
+    rdfs:seeAlso mwv:HorizonsOfFocus .
+
+mw:systemStrata a owl:ObjectProperty ;
+    rdfs:label "system strata"@en ; rdfs:domain mw:MetaWorkGroup ; rdfs:range skos:Concept ;
+    rdfs:seeAlso mwv:SystemStrata .
+
+mw:verticalDevelopmentStage a owl:ObjectProperty ;
+    rdfs:label "vertical development stage"@en ; rdfs:domain mw:MetaWorkGroup ; rdfs:range skos:Concept ;
+    rdfs:seeAlso mwv:VerticalDevelopmentStage .
+
+mw:cynefinDomain a owl:ObjectProperty ;
+    rdfs:label "cynefin domain"@en ; rdfs:domain mw:MetaWorkGroup ; rdfs:range skos:Concept ;
+    rdfs:seeAlso mwv:CynefinDomain .
+
+mw:neurologicalLevel a owl:ObjectProperty ;
+    rdfs:label "neurological level"@en ; rdfs:domain mw:MetaWorkGroup ; rdfs:range skos:Concept ;
+    rdfs:seeAlso mwv:NeurologicalLevel .
+
+mw:perspectiveCheck a owl:ObjectProperty ;
+    rdfs:label "perspective check"@en ; rdfs:domain mw:MetaWorkGroup ; rdfs:range skos:Concept ;
+    rdfs:seeAlso mwv:PerspectiveCheck .
+
+mw:backend a owl:ObjectProperty ;
+    rdfs:label "backend"@en ; rdfs:domain mw:MetaWorkGroup ; rdfs:range skos:Concept ;
+    rdfs:seeAlso mwv:Backend .
+
+mw:Decision a owl:Class ;
+    rdfs:label "Decision"@en ;
+    rdfs:comment "A decision or question being worked on inside one Meta Work Group, at a stated Horizons of Focus altitude. Usage evidence, not scope."@en ;
+    rdfs:seeAlso mwv:Decision .
+
+mw:inGroup a owl:ObjectProperty ;
+    rdfs:label "in group"@en ; rdfs:domain mw:Decision ; rdfs:range mw:MetaWorkGroup ;
+    rdfs:comment "The Meta Work Group in which the decision is being worked."@en .
+
+mw:decisionAltitude a owl:ObjectProperty ;
+    rdfs:label "decision altitude"@en ; rdfs:domain mw:Decision ; rdfs:range skos:Concept ;
+    rdfs:comment "The Horizons of Focus altitude at which the decision is actually being made. Compared against the group's mw:horizonsOfFocus to detect a scope-axis mismatch."@en ;
+    rdfs:seeAlso mwv:HorizonsOfFocus .
+
+mw:statement a owl:DatatypeProperty ;
+    rdfs:label "statement"@en ; rdfs:domain mw:Decision ; rdfs:range xsd:string ;
+    rdfs:comment "Free-text wording of the decision or question, for humans reading a report."@en .

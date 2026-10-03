@@ -1,0 +1,81 @@
+@prefix mw:   <https://ontology.integralproductivity.com/metawork#> .
+@prefix mwv:  <https://ontology.integralproductivity.com/metawork/vocab/> .
+@prefix mws:  <https://ontology.integralproductivity.com/metawork/shapes#> .
+@prefix sh:   <http://www.w3.org/ns/shacl#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+
+#############################################################################
+# Scope-axis mismatch — the metawork-diagnose pattern, as a SHACL shape.
+# (ADR-0003, item 3.)
+#
+# Prose source (metawork-claude-plugin skills/metawork-diagnose/SKILL.md):
+#   "a group's horizons_of_focus value doesn't match the altitude at which
+#    the user is actually trying to make decisions."
+#
+# The group alone cannot show this: its frontmatter says how it is scoped,
+# not how it is used. Usage is recorded as an mw:Decision that names the
+# group (mw:inGroup) and the Horizons of Focus altitude the decision is
+# actually being made at (mw:decisionAltitude). The mismatch is a Decision
+# whose altitude differs from its group's mw:horizonsOfFocus.
+#
+# Two shapes:
+#   mws:DecisionShape          — a Decision is well-formed (sh:Violation).
+#   mws:ScopeAxisMismatchShape — the diagnostic pattern (sh:Warning).
+#############################################################################
+
+mws:DecisionShape a sh:NodeShape ;
+    sh:targetClass mw:Decision ;
+    sh:name "Decision conformance"@en ;
+
+    sh:property [
+        sh:path mw:inGroup ;
+        sh:name "group" ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:class mw:MetaWorkGroup ;
+        sh:message "A Decision must name exactly one Meta Work Group it is being worked in."@en ] ;
+
+    sh:property [
+        sh:path mw:decisionAltitude ;
+        sh:name "altitude" ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:class skos:Concept ;
+        sh:node [ a sh:NodeShape ; sh:property [ sh:path skos:inScheme ; sh:hasValue mwv:HorizonsOfFocus ] ] ;
+        sh:message "A Decision must state exactly one altitude, a concept in the Horizons of Focus scheme."@en ] ;
+
+    sh:property [
+        sh:path mw:statement ;
+        sh:name "statement" ;
+        sh:datatype xsd:string ; sh:maxCount 1 ;
+        sh:message "A Decision's statement, if present, is a single string."@en ] .
+
+# Severity is sh:Warning, deliberately. A mismatch is a diagnostic signal,
+# not malformed data: the group and the decision are each valid, and a
+# practitioner may zoom out on purpose for one question. It becomes a
+# breakdown only when it recurs, which is a judgment for metawork-diagnose,
+# not for a validator. Malformed Decisions stay sh:Violation (DecisionShape).
+#
+# pyshacl reports a Warning as non-conformance unless allow_warnings is set,
+# and tools/metawork_ontology.py does not set it, so `validate` exits 1 and
+# the warning appears in the report text. Consumers that need to tell the
+# two apart should read sh:resultSeverity (see mo.findings()).
+mws:ScopeAxisMismatchShape a sh:NodeShape ;
+    sh:targetClass mw:Decision ;
+    sh:name "Scope-axis mismatch"@en ;
+    sh:description "A Decision is being made at a different Horizons of Focus altitude than the Meta Work Group it is worked in is scoped at."@en ;
+    sh:severity sh:Warning ;
+    sh:sparql [
+        sh:message "Scope-axis mismatch: this decision is being made at horizons_of_focus '{?decisionNotation}', but its Meta Work Group <{?group}> is scoped at '{?groupNotation}'."@en ;
+        sh:select """
+            PREFIX mw:   <https://ontology.integralproductivity.com/metawork#>
+            PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+            SELECT $this ?path ?value ?group ?decisionNotation ?groupNotation WHERE {
+                $this mw:inGroup ?group ;
+                      mw:decisionAltitude ?value .
+                ?group mw:horizonsOfFocus ?groupAltitude .
+                FILTER (?value != ?groupAltitude)
+                ?value skos:notation ?decisionNotation .
+                ?groupAltitude skos:notation ?groupNotation .
+                BIND (mw:decisionAltitude AS ?path)
+            }
+        """ ] .

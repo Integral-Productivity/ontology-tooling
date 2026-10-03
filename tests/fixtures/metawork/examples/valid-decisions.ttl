@@ -1,0 +1,20 @@
+@prefix mw:  <https://ontology.integralproductivity.com/metawork#> .
+@prefix mwv: <https://ontology.integralproductivity.com/metawork/vocab/> .
+@prefix ex:  <https://example.integralproductivity.com/groups/> .
+@prefix exd: <https://example.integralproductivity.com/decisions/> .
+
+# Decisions worked at the altitude their group is scoped at. Validate together
+# with valid-groups.ttl, which declares the groups:
+#   python tools/metawork_ontology.py validate examples/valid-groups.ttl examples/valid-decisions.ttl
+
+# A project-level question in the project-level group (10,000 ft = 10,000 ft).
+exd:ship-v0-2 a mw:Decision ;
+    mw:inGroup ex:metawork-ontology ;
+    mw:decisionAltitude mwv:hof-10000ft ;
+    mw:statement "Which competency questions go into v0.2?" .
+
+# An area-level question in the area-level group (20,000 ft = 20,000 ft).
+exd:keep-the-area a mw:Decision ;
+    mw:inGroup ex:overview-vertical-development ;
+    mw:decisionAltitude mwv:hof-20000ft ;
+    mw:statement "Is vertical development still an area I hold, or a project I finish?" .
