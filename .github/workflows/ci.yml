@@ -29,6 +29,8 @@ jobs:
   # repository's tags are package releases, not ontology releases.
   pages-metawork:
     uses: ./.github/workflows/pages.yml
+    # A caller must grant what the called deploy job declares, even when deploy: false skips it.
+    permissions: { contents: read, pages: write, id-token: write }
     with:
       working-directory: tests/fixtures/metawork
       install: ../../..
@@ -37,6 +39,8 @@ jobs:
 
   pages-sample:
     uses: ./.github/workflows/pages.yml
+    # A caller must grant what the called deploy job declares, even when deploy: false skips it.
+    permissions: { contents: read, pages: write, id-token: write }
     with:
       working-directory: tests/fixtures/sample
       install: ../../..
