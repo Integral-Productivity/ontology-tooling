@@ -127,6 +127,35 @@ def test_renderer_hooks_override_the_defaults(tmp_path):
     assert "Custom section" in onto and "source" in onto
 
 
+def crumbs_of(path):
+    return re.search(r'<div class="crumbs">(.*?)</div>', path.read_text(encoding="utf-8")).group(1)
+
+
+def test_default_crumbs_are_unchanged(built):
+    """The trail before root_crumbs() existed, on each of the three page kinds, byte for byte."""
+    out, site = built
+    n, title = html.escape(site.name), html.escape(site.title())
+    home = f'<a href="/{n}/">{title}</a>'
+    resource = next(s for s in site.page_subjects() if "#" not in site.path(s))
+    assert crumbs_of(out / site.name / "index.html") == title
+    assert crumbs_of(out / site.name / "v" / site.version / "index.html") == f"{home} › v{html.escape(site.version)}"
+    assert crumbs_of(out / site.path(resource).strip("/") / "index.html") == f"{home} › vocab"
+
+
+class HubSite(Site):
+    def root_crumbs(self):
+        return ['<a href="/">ontologies</a>']
+
+
+def test_one_root_crumbs_override_reaches_every_page_kind(tmp_path):
+    out = tmp_path / "site"
+    site = ot.build(out, SAMPLE, HubSite, releases={})
+    hub = '<a href="/">ontologies</a> › '
+    assert crumbs_of(out / "sample/index.html") == hub + html.escape(site.title())
+    assert crumbs_of(out / f"sample/v/{site.version}/index.html").startswith(hub + '<a href="/sample/">')
+    assert crumbs_of(out / "sample/vocab/red/index.html").startswith(hub + '<a href="/sample/">')
+
+
 def test_hub_rule_violations_name_each_broken_rule(built, tmp_path):
     out, site = built
     copy = tmp_path / "copy"

@@ -11,6 +11,7 @@ Renderer hooks (ADR-0005, decision 2). Subclass ``Site`` and override:
 - ``resource_rows(iri)``   the rows of that page; extend instead of replacing it;
 - ``ontology_sections()``  extra HTML sections on the ontology page;
 - ``footer_extra()``       extra HTML in every page's footer;
+- ``root_crumbs()``        crumbs before the ontology's own, on every page;
 - ``page_subjects()``      which IRIs get a page (default: every subject under ``<base>/``).
 
 Domain helpers (lifting, label lookups) stay in each ontology repository.
@@ -149,8 +150,12 @@ class Site:
 <footer>{e(self.title())} {e(self.version)}{lic_html} ·
 machine-readable: <a href="{e(self.ttl_href)}">{e(self.ttl_href.lstrip("/"))}</a>{self.footer_extra()}</footer></main></body></html>"""
 
+    def root_crumbs(self) -> list[str]:
+        """Hook: HTML crumbs before the ontology's own, on every page (e.g. a link to the hub at ``/``)."""
+        return []
+
     def crumbs(self, *parts: str) -> str:
-        return " › ".join([f'<a href="/{e(self.name)}/">{e(self.title())}</a>', *parts])
+        return " › ".join([*self.root_crumbs(), f'<a href="/{e(self.name)}/">{e(self.title())}</a>', *parts])
 
     @staticmethod
     def dl(rows: list[tuple[str, str]]) -> str:
@@ -262,7 +267,7 @@ machine-readable: <a href="{e(self.ttl_href)}">{e(self.ttl_href.lstrip("/"))}</a
 Version {e(self.version)} snapshot: <a href="/{n}/v/{e(self.version)}/">/{n}/v/{e(self.version)}/</a>.</p>
 {f"<h2>Concept schemes</h2>{schemes}" if schemes else ""}{self.ontology_sections()}
 {f"<h2>Schema</h2>{schema}" if schema else ""}"""
-        crumbs = self.crumbs(f"v{e(self.version)}") if snapshot else e(title)
+        crumbs = self.crumbs(f"v{e(self.version)}") if snapshot else " › ".join([*self.root_crumbs(), e(title)])
         return self.page(f"{title} {self.version}" if snapshot else title, body, crumbs)
 
     def root_page(self) -> str:
