@@ -3,7 +3,7 @@
 #
 #   jobs:
 #     validate:
-#       uses: Integral-Productivity/ontology-tooling/.github/workflows/validate.yml@v0.1.0
+#       uses: Integral-Productivity/ontology-tooling/.github/workflows/validate.yml@v0.1.1
 #       with:
 #         examples: |
 #           examples/valid-groups.ttl

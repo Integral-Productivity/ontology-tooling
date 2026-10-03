@@ -160,3 +160,18 @@ def test_one_owl_ontology_required():
     g = Graph()
     with pytest.raises(ValueError, match="one owl:Ontology"):
         Site(g)
+
+
+def test_only_web_iris_become_links_and_hrefs_are_escaped(tmp_path):
+    g = Graph().parse(SAMPLE, format="turtle")
+    red = URIRef("https://example.org/sample/vocab/red")
+    g.add((red, SKOS.related, URIRef("javascript:alert(1)")))
+    g.add((red, SKOS.related, URIRef("https://example.org/x?a=1&b=2")))
+    f = tmp_path / "evil.ttl"
+    g.serialize(f, format="turtle")
+    out = tmp_path / "site"
+    ot.build(out, f, releases={})
+    raw = (out / "sample/vocab/red/index.html").read_text(encoding="utf-8")
+    assert 'href="javascript:' not in raw
+    assert 'href="https://example.org/x?a=1&amp;b=2"' in raw
+    assert "javascript:alert(1)" in raw  # still shown, as text

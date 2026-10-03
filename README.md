@@ -31,7 +31,7 @@ the package names a host.
 `requirements.txt`:
 
 ```
-ontology-tooling @ git+https://github.com/Integral-Productivity/ontology-tooling@v0.1.0
+ontology-tooling @ git+https://github.com/Integral-Productivity/ontology-tooling@v0.1.1
 ```
 
 `.github/workflows/pages.yml`:
@@ -44,7 +44,7 @@ on:
   workflow_dispatch:
 jobs:
   pages:
-    uses: Integral-Productivity/ontology-tooling/.github/workflows/pages.yml@v0.1.0
+    uses: Integral-Productivity/ontology-tooling/.github/workflows/pages.yml@v0.1.1
     permissions: { contents: read, pages: write, id-token: write }
     # with:
     #   site-class: site_hooks:MySite          # renderer hooks, in tools/site_hooks.py
@@ -60,7 +60,7 @@ on:
   pull_request:
 jobs:
   validate:
-    uses: Integral-Productivity/ontology-tooling/.github/workflows/validate.yml@v0.1.0
+    uses: Integral-Productivity/ontology-tooling/.github/workflows/validate.yml@v0.1.1
     with:
       examples: |
         examples/valid-groups.ttl
