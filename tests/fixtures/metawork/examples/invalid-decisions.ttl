@@ -1,0 +1,29 @@
+@prefix mw:  <https://ontology.integralproductivity.com/metawork#> .
+@prefix mwv: <https://ontology.integralproductivity.com/metawork/vocab/> .
+@prefix ex:  <https://example.integralproductivity.com/groups/> .
+@prefix exd: <https://example.integralproductivity.com/decisions/> .
+
+# Validate together with valid-groups.ttl, which declares the groups. Each
+# decision below produces exactly one result; tests/test_shapes.py pins the
+# focus nodes and severities so a loosened shape fails CI.
+
+# 1. Scope-axis mismatch (sh:Warning): a 10,000 ft project group being used
+#    to grapple with a 20,000 ft areas question — the case the diagnose
+#    skill names.
+exd:area-question-in-project-group a mw:Decision ;
+    mw:inGroup ex:metawork-ontology ;
+    mw:decisionAltitude mwv:hof-20000ft ;
+    mw:statement "Should ontology work be an ongoing area of responsibility at all?" .
+
+# 2. Scope-axis mismatch (sh:Warning), the vice-versa case: a 20,000 ft area
+#    group being used to make a 10,000 ft project decision.
+exd:project-question-in-area-group a mw:Decision ;
+    mw:inGroup ex:overview-vertical-development ;
+    mw:decisionAltitude mwv:hof-10000ft ;
+    mw:statement "Which section of the vertical-development pillar doc do I rewrite first?" .
+
+# 3. Malformed (sh:Violation): no altitude stated, so no mismatch can be
+#    judged. DecisionShape rejects it; ScopeAxisMismatchShape stays silent.
+exd:no-altitude a mw:Decision ;
+    mw:inGroup ex:metawork-ontology ;
+    mw:statement "Something, at some altitude." .

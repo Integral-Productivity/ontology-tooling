@@ -1,0 +1,88 @@
+# Synthetic fixture for ontology-tooling's tests. It mimics the shape of
+# vertical-development-ontology (SKOS-XL labels, an ordered collection, cited
+# sources as their own IRIs, a #-schema) without copying any of its content:
+# that repository is private until its publication gate opens (its ADR-0006).
+# Base IRI on example.org, so no test depends on the Integral Productivity host.
+
+@prefix ex:      <https://example.org/sample#> .
+@prefix exv:     <https://example.org/sample/vocab/> .
+@prefix exl:     <https://example.org/sample/vocab/label/> .
+@prefix exs:     <https://example.org/sample/source/> .
+@prefix skos:    <http://www.w3.org/2004/02/skos/core#> .
+@prefix skosxl:  <http://www.w3.org/2008/05/skos-xl#> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl:     <http://www.w3.org/2002/07/owl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix prov:    <http://www.w3.org/ns/prov#> .
+
+<https://example.org/sample>
+    a owl:Ontology ;
+    dcterms:title "Sample ontology"@en ;
+    dcterms:description "A made-up ontology of colour bands, for tests."@en ;
+    dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/> ;
+    owl:versionInfo "0.2.0" .
+
+ex:Band a owl:Class ;
+    rdfs:subClassOf skos:Concept ;
+    rdfs:label "Band"@en ;
+    rdfs:comment "A named range of colours."@en .
+
+ex:warmth a owl:DatatypeProperty ;
+    rdfs:label "warmth"@en ;
+    rdfs:domain ex:Band ;
+    rdfs:comment "How warm a band reads, 0 to 10."@en .
+
+ex:nextBand a owl:ObjectProperty ;
+    rdfs:label "next band"@en ;
+    rdfs:domain ex:Band ;
+    rdfs:range ex:Band .
+
+exv:Bands a skos:ConceptScheme ;
+    skos:prefLabel "Bands"@en ;
+    skos:definition "The colour bands, in spectral order."@en ;
+    skos:hasTopConcept exv:red .
+
+exv:BandSequence a skos:OrderedCollection ;
+    skos:prefLabel "Band sequence"@en ;
+    skos:memberList ( exv:red exv:green exv:blue ) .
+
+exv:red a skos:Concept , ex:Band ;
+    skos:inScheme exv:Bands ;
+    skos:topConceptOf exv:Bands ;
+    skos:prefLabel "Red"@en ;
+    skos:notation "1" ;
+    skos:definition "The longest visible wavelengths."@en ;
+    skosxl:prefLabel exl:red-common ;
+    skosxl:altLabel exl:scarlet-poetic ;
+    skos:narrower exv:crimson ;
+    dcterms:source exs:spectrum-1704 .
+
+exv:crimson a skos:Concept , ex:Band ;
+    skos:inScheme exv:Bands ;
+    skos:prefLabel "Crimson"@en ;
+    skos:definition "A deep red."@en ;
+    skos:broader exv:red .
+
+exv:green a skos:Concept , ex:Band ;
+    skos:inScheme exv:Bands ;
+    skos:prefLabel "Green"@en ;
+    skos:notation "2" ;
+    skos:altLabel "Verdant"@en ;
+    skos:definition "The middle of the visible spectrum."@en ;
+    skos:related exv:blue .
+
+exv:blue a skos:Concept , ex:Band ;
+    skos:inScheme exv:Bands ;
+    skos:prefLabel "Blue"@en ;
+    skos:notation "3" ;
+    skos:definition "The shortest wavelengths most people name."@en ;
+    skos:scopeNote "Excludes violet."@en .
+
+exl:red-common a skosxl:Label ;
+    skosxl:literalForm "Red"@en .
+
+exl:scarlet-poetic a skosxl:Label ;
+    skosxl:literalForm "Scarlet"@en .
+
+exs:spectrum-1704 a prov:Entity ;
+    rdfs:label "Newton, I. (1704). Opticks. Made-up citation for tests."@en .

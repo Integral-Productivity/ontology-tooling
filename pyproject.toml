@@ -1,0 +1,28 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ontology-tooling"
+version = "0.1.0"
+description = "Shared site build, IRI-to-file check and SHACL validation for Integral Productivity ontologies"
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.10"
+dependencies = ["rdflib>=7.0", "pyshacl>=0.26"]
+
+[project.optional-dependencies]
+test = ["pytest>=8", "pyyaml>=6"]
+
+[project.scripts]
+ontology-tooling = "ontology_tooling.cli:main"
+
+[project.urls]
+Source = "https://github.com/Integral-Productivity/ontology-tooling"
+Decision = "https://github.com/Integral-Productivity/metawork-ontology/blob/main/docs/adr/0005-shared-tooling-package-and-reusable-workflow.md"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

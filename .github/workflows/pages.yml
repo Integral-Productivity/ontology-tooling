@@ -1,0 +1,110 @@
+# Reusable: build an ontology's project site, check it, and deploy it to GitHub Pages.
+# metawork-ontology ADR-0005, decision 3.
+#
+# Caller (pin the same tag here and in requirements.txt, and bump both together):
+#
+#   jobs:
+#     pages:
+#       uses: Integral-Productivity/ontology-tooling/.github/workflows/pages.yml@v0.1.0
+#       permissions: { contents: read, pages: write, id-token: write }
+#       with:
+#         site-class: tools.site_hooks:MySite   # optional renderer hooks
+#
+# The build and the IRI-to-file check run on pull requests and on main. The
+# deploy runs only on main, never on a pull request, and never while the calling
+# repository is private: GitHub Pages would publish a private repository's site
+# (vertical-development-ontology ADR-0006, generalized). `github.*` here is the
+# caller's context, so the private flag is the caller's.
+name: pages
+
+on:
+  workflow_call:
+    inputs:
+      python-version:
+        type: string
+        default: "3.12"
+      working-directory:
+        description: Ontology repository root, relative to the checkout.
+        type: string
+        default: "."
+      install:
+        description: Arguments to `pip install` (must install ontology-tooling).
+        type: string
+        default: "-r requirements.txt"
+      ontology:
+        description: Turtle file; default is the one ontology/*.ttl.
+        type: string
+        default: ""
+      site-class:
+        description: module:Class, a Site subclass with renderer hooks (module looked up from the root and tools/).
+        type: string
+        default: ""
+      release-snapshots:
+        description: Publish a snapshot for every vX.Y.Z tag and freeze released files.
+        type: boolean
+        default: true
+      extra-check:
+        description: Shell command run after the build and IRI check (e.g. site content tests).
+        type: string
+        default: ""
+      deploy:
+        description: Deploy from main. Still skipped on pull requests and while the repository is private.
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ${{ inputs.working-directory }}
+    env:
+      INSTALL: ${{ inputs.install }}
+      ONTOLOGY: ${{ inputs.ontology }}
+      SITE_CLASS: ${{ inputs.site-class }}
+      RELEASES: ${{ inputs.release-snapshots }}
+      EXTRA_CHECK: ${{ inputs.extra-check }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # release tags come only with full history
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ inputs.python-version }}
+      - name: Install
+        run: pip install $INSTALL
+      - name: Render ontology to static site (fails on a broken hub rule or an edited release)
+        run: |
+          args=()
+          [ -n "$SITE_CLASS" ] && args+=(--site-class "$SITE_CLASS")
+          [ "$RELEASES" = "true" ] || args+=(--no-release-snapshots)
+          ontology-tooling ${ONTOLOGY:+--ontology "$ONTOLOGY"} build --out site "${args[@]}"
+      - name: Every minted IRI maps to a file; hub rules hold
+        run: ontology-tooling ${ONTOLOGY:+--ontology "$ONTOLOGY"} check-iris --site site
+      - name: Extra check
+        if: ${{ inputs.extra-check != '' }}
+        run: eval "$EXTRA_CHECK"
+      - uses: actions/upload-pages-artifact@v3
+        if: ${{ inputs.deploy && github.event_name != 'pull_request' && github.ref == 'refs/heads/main' && !github.event.repository.private }}
+        with:
+          path: ${{ inputs.working-directory }}/site
+
+  deploy:
+    if: ${{ inputs.deploy && github.event_name != 'pull_request' && github.ref == 'refs/heads/main' && !github.event.repository.private }}
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/configure-pages@v5
+        with:
+          enablement: true
+      - id: deployment
+        uses: actions/deploy-pages@v4

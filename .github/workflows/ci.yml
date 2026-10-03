@@ -1,0 +1,66 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.10", "3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - run: pip install -e '.[test]'
+      - run: python -m pytest -q
+
+  # The reusable workflows, run against the fixture ontologies with this checkout installed.
+  # Deploy is off: this repository publishes no site. Release snapshots are off: this
+  # repository's tags are package releases, not ontology releases.
+  pages-metawork:
+    uses: ./.github/workflows/pages.yml
+    # A caller must grant what the called deploy job declares, even when deploy: false skips it.
+    permissions: { contents: read, pages: write, id-token: write }
+    with:
+      working-directory: tests/fixtures/metawork
+      install: ../../..
+      release-snapshots: false
+      deploy: false
+
+  pages-sample:
+    uses: ./.github/workflows/pages.yml
+    # A caller must grant what the called deploy job declares, even when deploy: false skips it.
+    permissions: { contents: read, pages: write, id-token: write }
+    with:
+      working-directory: tests/fixtures/sample
+      install: ../../..
+      release-snapshots: false
+      deploy: false
+
+  validate-metawork:
+    uses: ./.github/workflows/validate.yml
+    with:
+      working-directory: tests/fixtures/metawork
+      install: ../../..
+      examples: |
+        examples/valid-groups.ttl
+        examples/valid-groups.ttl examples/valid-decisions.ttl
+      test-command: ""
+
+  validate-sample:
+    uses: ./.github/workflows/validate.yml
+    with:
+      working-directory: tests/fixtures/sample
+      install: ../../..
+      examples: examples/valid-extension.ttl
+      test-command: ""

@@ -1,0 +1,93 @@
+# Reusable: parse every Turtle file, validate the example files, run the repository's tests.
+# metawork-ontology ADR-0005, decision 3.
+#
+#   jobs:
+#     validate:
+#       uses: Integral-Productivity/ontology-tooling/.github/workflows/validate.yml@v0.1.0
+#       with:
+#         examples: |
+#           examples/valid-groups.ttl
+#           examples/valid-groups.ttl examples/valid-decisions.ttl
+#
+# Each line of `examples` is one data graph (files on a line are merged) that
+# must conform to the shapes. Invalid examples belong in the repository's tests.
+name: validate
+
+on:
+  workflow_call:
+    inputs:
+      python-version:
+        type: string
+        default: "3.12"
+      working-directory:
+        type: string
+        default: "."
+      install:
+        description: Arguments to `pip install` (must install ontology-tooling).
+        type: string
+        default: "-r requirements.txt"
+      ontology:
+        description: Turtle file; default is the one ontology/*.ttl.
+        type: string
+        default: ""
+      shapes:
+        description: Shapes files or directories, space-separated.
+        type: string
+        default: "shapes"
+      examples:
+        description: One line per data graph that must conform; files on a line are merged.
+        type: string
+        default: ""
+      test-command:
+        description: Shell command for the repository's own tests; empty to skip.
+        type: string
+        default: "python -m pytest -q"
+
+permissions:
+  contents: read
+
+jobs:
+  ontology:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ${{ inputs.working-directory }}
+    env:
+      INSTALL: ${{ inputs.install }}
+      ONTOLOGY: ${{ inputs.ontology }}
+      SHAPES: ${{ inputs.shapes }}
+      EXAMPLES: ${{ inputs.examples }}
+      TEST_COMMAND: ${{ inputs.test-command }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # tests that build the site read release tags
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ inputs.python-version }}
+      - name: Install
+        run: pip install $INSTALL
+      - name: Turtle parses
+        run: |
+          python - <<'EOF'
+          from pathlib import Path
+          from rdflib import Graph
+          files = sorted(f for d in ("ontology", "shapes", "examples") for f in Path(d).rglob("*.ttl"))
+          for f in files:
+              Graph().parse(f, format="turtle")
+          print(f"{len(files)} Turtle files parse")
+          EOF
+      - name: Example data conforms to the shapes
+        if: ${{ inputs.examples != '' }}
+        run: |
+          status=0
+          while read -r line; do
+            [ -z "$line" ] && continue
+            echo "::group::validate $line"
+            ontology-tooling ${ONTOLOGY:+--ontology "$ONTOLOGY"} validate --shapes $SHAPES -- $line || status=1
+            echo "::endgroup::"
+          done <<< "$EXAMPLES"
+          exit $status
+      - name: Repository tests
+        if: ${{ inputs.test-command != '' }}
+        run: eval "$TEST_COMMAND"

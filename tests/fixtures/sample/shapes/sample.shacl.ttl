@@ -1,0 +1,25 @@
+@prefix ex:   <https://example.org/sample#> .
+@prefix exv:  <https://example.org/sample/vocab/> .
+@prefix exsh: <https://example.org/sample/shapes#> .
+@prefix sh:   <http://www.w3.org/ns/shacl#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+
+# Core constraint: a band has exactly one definition.
+exsh:BandShape a sh:NodeShape ;
+    sh:targetClass ex:Band ;
+    sh:property [ sh:path skos:definition ; sh:minCount 1 ; sh:maxCount 1 ;
+                  sh:message "A band has exactly one definition."@en ] ;
+    # SHACL-SPARQL, as both real ontologies use (ADR-0005 decision 5).
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:message "A band's next band must be in the same scheme."@en ;
+        sh:prefixes exsh:prefixes ;
+        sh:select """
+            SELECT $this ?value WHERE {
+                $this ex:nextBand ?value .
+                FILTER NOT EXISTS { $this skos:inScheme ?s . ?value skos:inScheme ?s . }
+            }""" ] .
+
+exsh:prefixes a <http://www.w3.org/2002/07/owl#Ontology> ;
+    sh:declare [ sh:prefix "ex" ; sh:namespace "https://example.org/sample#"^^<http://www.w3.org/2001/XMLSchema#anyURI> ] ,
+               [ sh:prefix "skos" ; sh:namespace "http://www.w3.org/2004/02/skos/core#"^^<http://www.w3.org/2001/XMLSchema#anyURI> ] .
