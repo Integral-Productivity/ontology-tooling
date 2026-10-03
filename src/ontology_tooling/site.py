@@ -42,6 +42,7 @@ table{border-collapse:collapse;width:100%}td,th{text-align:left;padding:.35em .5
 """
 
 e = html.escape
+LINKABLE = ("http://", "https://", "urn:", "mailto:")
 
 
 class Site:
@@ -77,8 +78,11 @@ class Site:
             return s[len(self.origin):].rstrip("/") + "/"
         return None
 
-    def href(self, iri: URIRef) -> str:
-        return self.path(iri) or str(iri)
+    def href(self, iri: URIRef) -> str | None:
+        """Link target for an IRI, or None when its scheme must not become a link (e.g. javascript:)."""
+        if path := self.path(iri):
+            return path
+        return str(iri) if str(iri).lower().startswith(LINKABLE) else None
 
     def page_subjects(self) -> list[URIRef]:
         """IRIs that get their own page: every subject minted under ``<base>/``."""
@@ -106,9 +110,10 @@ class Site:
         return m.group(1) if m else label.split(". ")[0]
 
     def link(self, iri, text: str | None = None) -> str:
-        if not isinstance(iri, URIRef):
+        target = self.href(iri) if isinstance(iri, URIRef) else None
+        if target is None:
             return e(text or str(iri))
-        return f'<a href="{e(self.href(iri))}">{e(text or self.name_of(iri))}</a>'
+        return f'<a href="{e(target)}">{e(text or self.name_of(iri))}</a>'
 
     def links(self, iris) -> str:
         return ", ".join(self.link(x) for x in self.by_label(iris))
@@ -136,16 +141,16 @@ class Site:
 
     def page(self, title: str, body: str, crumbs: str) -> str:
         lic = self.g.value(self.onto, DCTERMS.license)
-        lic_html = f' · license: <a href="{e(str(lic))}">{e(str(lic))}</a>' if lic else ""
+        lic_html = f" · license: {self.link(lic, str(lic))}" if lic is not None else ""
         return f"""<!doctype html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1"><title>{e(title)}</title>
-<link rel="alternate" type="text/turtle" href="{self.ttl_href}"><style>{CSS}</style></head>
+<link rel="alternate" type="text/turtle" href="{e(self.ttl_href)}"><style>{CSS}</style></head>
 <body><main><div class="crumbs">{crumbs}</div>{body}
 <footer>{e(self.title())} {e(self.version)}{lic_html} ·
-machine-readable: <a href="{self.ttl_href}">{e(self.ttl_href.lstrip("/"))}</a>{self.footer_extra()}</footer></main></body></html>"""
+machine-readable: <a href="{e(self.ttl_href)}">{e(self.ttl_href.lstrip("/"))}</a>{self.footer_extra()}</footer></main></body></html>"""
 
     def crumbs(self, *parts: str) -> str:
-        return " › ".join([f'<a href="/{self.name}/">{e(self.title())}</a>', *parts])
+        return " › ".join([f'<a href="/{e(self.name)}/">{e(self.title())}</a>', *parts])
 
     @staticmethod
     def dl(rows: list[tuple[str, str]]) -> str:
@@ -245,15 +250,16 @@ machine-readable: <a href="{self.ttl_href}">{e(self.ttl_href.lstrip("/"))}</a>{s
 
     def ontology_page(self, snapshot: bool = False) -> str:
         title = self.title()
+        n = e(self.name)
         ttl = f"/{self.name}/v/{self.version}/{self.name}.ttl" if snapshot else self.ttl_href
         snap = (f'<p class="warn">This is the snapshot of version {e(self.version)}. The current version is at '
-                f'<a href="/{self.name}/">/{e(self.name)}/</a>.</p>') if snapshot else ""
+                f'<a href="/{n}/">/{n}/</a>.</p>') if snapshot else ""
         schemes = self.schemes_html()
         schema = self.schema_html()
         body = f"""<h1>{e(title)}</h1>{snap}<p class="muted">version {e(self.version)} · base <code>{e(self.base)}</code></p>
 <p>{e(self.lit(self.onto, DCTERMS.description))}</p>
 <p>Download: <a href="{e(ttl)}">{e(self.name)}.ttl</a> (Turtle).
-Version {e(self.version)} snapshot: <a href="/{self.name}/v/{e(self.version)}/">/{e(self.name)}/v/{e(self.version)}/</a>.</p>
+Version {e(self.version)} snapshot: <a href="/{n}/v/{e(self.version)}/">/{n}/v/{e(self.version)}/</a>.</p>
 {f"<h2>Concept schemes</h2>{schemes}" if schemes else ""}{self.ontology_sections()}
 {f"<h2>Schema</h2>{schema}" if schema else ""}"""
         crumbs = self.crumbs(f"v{e(self.version)}") if snapshot else e(title)
