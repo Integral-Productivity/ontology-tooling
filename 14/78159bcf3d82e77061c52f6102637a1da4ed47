@@ -1,0 +1,80 @@
+tests/conftest.py
+  s_b3ae1b6c3aeaeb::t_e851840c0f73d8 1-38
+README.md
+  s_b3ae1b6c3aeaeb::t_2dd7ae0ed2a1a0 2-138
+src/ontology_tooling/site.py
+  s_b3ae1b6c3aeaeb::t_08aafe870338f0 1-268
+src/ontology_tooling/build.py
+  s_b3ae1b6c3aeaeb::t_64a5f9aa267b45 1-73
+  s_b3ae1b6c3aeaeb::t_28ad9742f5d6f2 74-125
+.github/workflows/pages.yml
+  s_b3ae1b6c3aeaeb::t_6cd59c4048c55b 1-110
+.github/workflows/ci.yml
+  s_b3ae1b6c3aeaeb::t_ceba2c5c748cfa 1-62
+.github/workflows/validate.yml
+  s_b3ae1b6c3aeaeb::t_a6cf83630b7462 1-93
+tests/test_build.py
+  s_b3ae1b6c3aeaeb::t_0e2b6fa920ef01 1-155
+  s_b3ae1b6c3aeaeb::t_bcfec038bda3f4 156-162
+src/ontology_tooling/check.py
+  s_b3ae1b6c3aeaeb::t_f73dcf885f9e74 1-72
+tests/test_validate_and_cli.py
+  s_b3ae1b6c3aeaeb::t_ce3c8965f6c71d 1-106
+tests/test_releases.py
+  s_b3ae1b6c3aeaeb::t_9bc104e62b56a0 1-115
+src/ontology_tooling/shacl.py
+  s_b3ae1b6c3aeaeb::t_5102c7820605c9 1-41
+src/ontology_tooling/__init__.py
+  s_b3ae1b6c3aeaeb::t_96dc1fbbdd7fd6 1-12
+pyproject.toml
+  s_b3ae1b6c3aeaeb::t_5f3fbf533cb5ab 1-28
+src/ontology_tooling/cli.py
+  s_b3ae1b6c3aeaeb::t_1dd4033e8be526 1-79
+  s_b3ae1b6c3aeaeb::t_6d018c6367871b 80-84
+.adr-dir
+  s_b3ae1b6c3aeaeb::t_594dc658f98172 1
+.gitignore
+  s_b3ae1b6c3aeaeb::t_67144b352a02fd 1-7
+docs/adr/0001-record-architecture-decisions.md
+  s_b3ae1b6c3aeaeb::t_d0bda2bbe2edb5 1-19
+tests/fixtures/metawork/examples/invalid-decisions.ttl
+  s_b3ae1b6c3aeaeb::t_b555b6fb3fe948 1-29
+tests/fixtures/metawork/examples/invalid-groups.ttl
+  s_b3ae1b6c3aeaeb::t_510af877f7e7b6 1-30
+tests/fixtures/metawork/examples/valid-decisions.ttl
+  s_b3ae1b6c3aeaeb::t_31dc63310524db 1-20
+tests/fixtures/metawork/examples/valid-groups.ttl
+  s_b3ae1b6c3aeaeb::t_83bf9df58fa66c 1-26
+tests/fixtures/metawork/ontology/metawork.ttl
+  s_b3ae1b6c3aeaeb::t_1927685877566f 1-334
+tests/fixtures/metawork/shapes/metawork-group.shacl.ttl
+  s_b3ae1b6c3aeaeb::t_2613a6aa3b3951 1-100
+tests/fixtures/metawork/shapes/scope-axis-mismatch.shacl.ttl
+  s_b3ae1b6c3aeaeb::t_3069418646f53b 1-81
+tests/fixtures/sample/examples/invalid-extension.ttl
+  s_b3ae1b6c3aeaeb::t_10aa5acdb5c75a 1-8
+tests/fixtures/sample/examples/valid-extension.ttl
+  s_b3ae1b6c3aeaeb::t_5903a0a95572b7 1-9
+tests/fixtures/sample/ontology/sample.ttl
+  s_b3ae1b6c3aeaeb::t_6359fa6636b01e 1-88
+tests/fixtures/sample/shapes/sample.shacl.ttl
+  s_b3ae1b6c3aeaeb::t_5aa5042b338034 1-25
+tests/test_workflows.py
+  s_b3ae1b6c3aeaeb::t_69dad45dd4ad21 1-50
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "1478159bcf3d82e77061c52f6102637a1da4ed47",
+  "prompts": {},
+  "sessions": {
+    "s_b3ae1b6c3aeaeb": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "d1f5fee2-e62c-4f6c-ac99-e74f5078ea26",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Kraig Parkinson <kraigparkinson@integralproductivity.com>"
+    }
+  }
+}
