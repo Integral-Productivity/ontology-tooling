@@ -31,7 +31,7 @@ the package names a host.
 `requirements.txt`:
 
 ```
-ontology-tooling @ git+https://github.com/Integral-Productivity/ontology-tooling@v0.1.1
+ontology-tooling @ git+https://github.com/Integral-Productivity/ontology-tooling@v0.1.2
 ```
 
 `.github/workflows/pages.yml`:
@@ -44,7 +44,7 @@ on:
   workflow_dispatch:
 jobs:
   pages:
-    uses: Integral-Productivity/ontology-tooling/.github/workflows/pages.yml@v0.1.1
+    uses: Integral-Productivity/ontology-tooling/.github/workflows/pages.yml@v0.1.2
     permissions: { contents: read, pages: write, id-token: write }
     # with:
     #   site-class: site_hooks:MySite          # renderer hooks, in tools/site_hooks.py
@@ -60,7 +60,7 @@ on:
   pull_request:
 jobs:
   validate:
-    uses: Integral-Productivity/ontology-tooling/.github/workflows/validate.yml@v0.1.1
+    uses: Integral-Productivity/ontology-tooling/.github/workflows/validate.yml@v0.1.2
     with:
       examples: |
         examples/valid-groups.ttl
@@ -105,6 +105,7 @@ API between repositories: changing it is a breaking release.
 | `resource_page(iri)` | title, kind, `resource_rows` |
 | `ontology_sections()` | nothing; HTML added after the concept schemes |
 | `footer_extra()` | nothing; HTML added to every footer |
+| `root_crumbs()` | `[]`; HTML crumbs before the ontology's own on every page (ontology, snapshot and resource pages), e.g. `['<a href="/">ontologies</a>']` |
 | `page_subjects()` | every subject IRI under `<base>/` |
 
 ```python
