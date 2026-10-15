@@ -21,6 +21,12 @@ def text(path):
     return " ".join(html.unescape(re.sub(r"<[^>]+>", " ", raw)).split())
 
 
+def snapshot_link(out, site):
+    """The ontology page's link to its own version snapshot, or None."""
+    m = re.search(rf'snapshot: <a href="(/{re.escape(site.name)}/v/[^"]+)"', (out / site.name / "index.html").read_text(encoding="utf-8"))
+    return m.group(1) if m else None
+
+
 def test_package_writes_no_iri_by_hand():
     src = "".join(p.read_text(encoding="utf-8") for p in Path(ot.__file__).parent.glob("*.py"))
     # Repository names appear in docstrings that cite ADRs; hosts and IRIs never do.
@@ -58,11 +64,20 @@ def test_definitions_are_the_ontologys_own_literals(built, graph):
             assert " ".join(str(d).split()) in text(out / site.path(c).strip("/") / "index.html")
 
 
-def test_current_version_snapshot(built, ttl):
+def test_untagged_current_version_has_no_snapshot(built):
+    """#8: with no release tags there is no v/ directory, and the ontology page does not link one."""
     out, site = built
+    assert not (out / site.name / "v").exists()
+    assert snapshot_link(out, site) is None
+
+
+def test_released_current_version_gets_a_snapshot_and_a_link(ttl, tmp_path):
+    out = tmp_path / "site"
+    site = ot.build(out, ttl, releases={Site(Graph().parse(ttl, format="turtle")).version: ttl.read_bytes()})
     snap = out / site.name / "v" / site.version
     assert (snap / f"{site.name}.ttl").read_bytes() == ttl.read_bytes()
     assert f"snapshot of version {site.version}" in text(snap / "index.html")
+    assert snapshot_link(out, site) == f"/{site.name}/v/{site.version}/"
 
 
 def test_root_page_points_at_the_prefix(built):
@@ -81,7 +96,7 @@ def test_base_and_version_come_from_the_ontology_file(tmp_path):
     f = tmp_path / "renamed.ttl"
     renamed.serialize(f, format="turtle")
     out = tmp_path / "site"
-    ot.build(out, f, releases={})
+    ot.build(out, f, releases={"9.9.9": f.read_bytes()})
     assert (out / "renamed.ttl").exists()
     assert (out / "renamed" / "vocab" / "label" / "red-common" / "index.html").exists()
     assert (out / "renamed" / "v" / "9.9.9" / "index.html").exists()
@@ -131,9 +146,16 @@ def crumbs_of(path):
     return re.search(r'<div class="crumbs">(.*?)</div>', path.read_text(encoding="utf-8")).group(1)
 
 
-def test_default_crumbs_are_unchanged(built):
+def released_build(tmp_path, ttl, site_cls=Site):
+    """Build with the current version released, so the snapshot page exists (#8)."""
+    out = tmp_path / "site"
+    version = Site(Graph().parse(ttl, format="turtle")).version
+    return out, ot.build(out, ttl, site_cls, releases={version: ttl.read_bytes()})
+
+
+def test_default_crumbs_are_unchanged(ttl, tmp_path):
     """The trail before root_crumbs() existed, on each of the three page kinds, byte for byte."""
-    out, site = built
+    out, site = released_build(tmp_path, ttl)
     n, title = html.escape(site.name), html.escape(site.title())
     home = f'<a href="/{n}/">{title}</a>'
     resource = next(s for s in site.page_subjects() if "#" not in site.path(s))
@@ -148,8 +170,7 @@ class HubSite(Site):
 
 
 def test_one_root_crumbs_override_reaches_every_page_kind(tmp_path):
-    out = tmp_path / "site"
-    site = ot.build(out, SAMPLE, HubSite, releases={})
+    out, site = released_build(tmp_path, SAMPLE, HubSite)
     hub = '<a href="/">ontologies</a> › '
     assert crumbs_of(out / "sample/index.html") == hub + html.escape(site.title())
     assert crumbs_of(out / f"sample/v/{site.version}/index.html").startswith(hub + '<a href="/sample/">')

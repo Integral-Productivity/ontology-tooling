@@ -45,7 +45,7 @@ def main(argv: list[str] | None = None) -> int:
     b.add_argument("--out", type=Path, default=Path("site"))
     b.add_argument("--site-class", help="module:Class, a Site subclass with renderer hooks")
     b.add_argument("--no-release-snapshots", action="store_true",
-                   help="ignore git release tags; snapshot the current version only (for repos whose tags are not ontology releases)")
+                   help="ignore git release tags, so no version gets a snapshot (for repos whose tags are not ontology releases)")
     c = sub.add_parser("check-iris", help="every minted IRI has a page; the hub rules hold")
     c.add_argument("--site", type=Path, default=Path("site"))
     v = sub.add_parser("validate", help="SHACL-validate data files (merged) against the ontology and shapes")

@@ -54,8 +54,10 @@ def test_older_released_version_is_kept(tmp_path):
     out = tmp_path / "site"
     ot.build(out, ttl, releases={"0.1.0": tiny("0.1.0")})
     assert (out / "tiny/v/0.1.0/tiny.ttl").read_bytes() == tiny("0.1.0")
-    assert (out / "tiny/v/0.2.0/tiny.ttl").read_bytes() == ttl.read_bytes()
     assert "snapshot of version 0.1.0" in (out / "tiny/v/0.1.0/index.html").read_text()
+    # #8: the untagged current version 0.2.0 has no snapshot, so a later bump cannot remove one.
+    assert sorted(p.name for p in (out / "tiny/v").iterdir()) == ["0.1.0"]
+    assert "/tiny/v/0.2.0/" not in (out / "tiny/index.html").read_text()
 
 
 def test_unbumped_edit_of_a_released_version_fails_before_writing(tmp_path):
@@ -64,6 +66,18 @@ def test_unbumped_edit_of_a_released_version_fails_before_writing(tmp_path):
     with pytest.raises(ot.ReleaseError, match="bump owl:versionInfo"):
         ot.build(out, ttl, releases={"0.1.0": tiny("0.1.0")})
     assert not out.exists()
+
+
+def test_version_bump_without_a_tag_removes_no_published_snapshot(tmp_path):
+    """#8 / vertical-development-ontology#10: every snapshot one build publishes, the next build publishes too."""
+    out = tmp_path / "site"
+    releases = {"0.1.0": tiny("0.1.0")}
+    ttl = write(tmp_path / "ontology" / "tiny.ttl", "0.2.0")
+    ot.build(out, ttl, releases=releases)
+    before = {p.name for p in (out / "tiny/v").iterdir()}
+    write(ttl, "0.3.0")
+    ot.build(out, ttl, releases=releases)
+    assert before <= {p.name for p in (out / "tiny/v").iterdir()}
 
 
 def test_released_version_equal_to_the_file_builds(tmp_path):
@@ -108,7 +122,12 @@ def test_build_reads_releases_from_git_end_to_end(repo, tmp_path):
     out = tmp_path / "site"
     ot.build(out, ttl)
     assert (out / "tiny/v/0.1.0/tiny.ttl").read_bytes() == tiny("0.1.0")
+    assert not (out / "tiny/v/0.2.0").exists()
+
+    commit_and_tag(repo, ttl, "v0.2.0")
+    ot.build(out, ttl)
     assert (out / "tiny/v/0.2.0/tiny.ttl").read_bytes() == tiny("0.2.0", "B")
+    assert 'snapshot: <a href="/tiny/v/0.2.0/"' in (out / "tiny/index.html").read_text()
 
     write(ttl, "0.1.0", label="Unbumped")
     with pytest.raises(ot.ReleaseError):
