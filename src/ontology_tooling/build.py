@@ -11,13 +11,20 @@ Output layout, for an ontology whose IRI is ``https://<host>/<name>``:
       ├── <path>/index.html     one page per subject IRI minted under <base>/
       └── v/<version>/          dated snapshot (metawork-ontology ADR-0004 decision 3):
                                 index.html and <name>.ttl, one per release tag vX.Y.Z
-                                (the file as it was at that tag) plus the current version
+                                (the file as it was at that tag)
+
+Only a tagged version gets a snapshot. An untagged current version has none, so a
+version bump cannot take a published snapshot off the site, and the ontology page
+links to its own snapshot only once its version is tagged (ontology-tooling#8,
+ported from vertical-development-ontology#10). Tags are immutable releases, so a
+snapshot that was deployed is deployed again by every later build.
 
 A released version's file may not change: if the current owl:versionInfo names
 a release tag and the file differs from it, the build fails with ReleaseError
 until the version is bumped. Snapshot rules ported from
 vertical-development-ontology#6 (its PR #12). They need the full git history,
-so check out with fetch-depth: 0.
+so check out with fetch-depth: 0. Push a release tag, then rebuild main, to
+publish its snapshot.
 
 The hub rules are checked at the end and a broken rule raises HubRuleError,
 so a renderer hook cannot ship a site the hub would serve wrongly.
@@ -77,9 +84,10 @@ def released(ttl: Path) -> dict[str, bytes]:
 
 
 def snapshots(site: Site, ttl: Path, releases: dict[str, bytes] | None = None) -> dict[str, bytes]:
-    """Versions to publish under ``/<name>/v/<version>/``: every release plus the current version.
+    """Versions to publish under ``/<name>/v/<version>/``: the releases, and only the releases.
 
-    Raises ReleaseError when the current version is released and the file differs from the tag.
+    The current version is included only when it is tagged. Raises ReleaseError when the
+    current version is released and the file differs from the tag.
     """
     if releases is None:
         releases = released(ttl)
@@ -87,7 +95,7 @@ def snapshots(site: Site, ttl: Path, releases: dict[str, bytes] | None = None) -
     if site.version in releases and releases[site.version] != data:
         raise ReleaseError(f"{ttl.name} differs from the released tag v{site.version}: "
                            f"bump owl:versionInfo before changing a released version")
-    return dict(sorted({site.version: data, **releases}.items()))
+    return dict(sorted(releases.items()))
 
 
 def build(out: Path, ttl: Path, site_cls: type[Site] = Site, releases: dict[str, bytes] | None = None) -> Site:
@@ -105,7 +113,7 @@ def build(out: Path, ttl: Path, site_cls: type[Site] = Site, releases: dict[str,
     (out / ".nojekyll").write_text("")
     (out / "index.html").write_text(site.root_page(), encoding="utf-8")
     shutil.copy(ttl, out / f"{site.name}.ttl")
-    (top / "index.html").write_text(site.ontology_page(), encoding="utf-8")
+    (top / "index.html").write_text(site.ontology_page(released=site.version in versions), encoding="utf-8")
 
     # snapshots() makes the released file for site.version, when present, equal to ttl.
     for version, data in versions.items():

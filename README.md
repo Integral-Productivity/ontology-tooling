@@ -17,7 +17,7 @@ layout itself (README, ADRs, competency questions, shapes, licence) comes from t
 | Page frame and CSS | `ontology_tooling.Site.page`, `CSS` |
 | IRI → site path (`<base>` → `/<name>/`, `<base>#X` → `/<name>/#X`, `<base>/p` → `/<name>/p/`) | `Site.path` |
 | Hub rules: Turtle at `/<name>.ttl`, no `site/CNAME`, `.nojekyll` ([ontology-hub ADR-0002](https://github.com/Integral-Productivity/ontology-hub/blob/main/docs/adr/0002-turtle-at-root-and-unlisted-entries.md)). The build fails if one breaks. | `hub_rule_violations`, `HubRuleError` |
-| Dated snapshots `/<name>/v/<version>/` for the current version and every `vX.Y.Z` tag; a released file may not change without a version bump ([metawork-ontology ADR-0004](https://github.com/Integral-Productivity/metawork-ontology/blob/main/docs/adr/0004-one-domain-many-ontologies.md) decision 3, behavior from vertical-development-ontology#6) | `released`, `snapshots`, `ReleaseError` |
+| Dated snapshots `/<name>/v/<version>/` for every `vX.Y.Z` tag, and only for tagged versions: an untagged current version gets none, so a bump cannot remove a published snapshot (#8, from vertical-development-ontology#10). Push the tag, then rebuild `main`, to publish a release's snapshot. A released file may not change without a version bump ([metawork-ontology ADR-0004](https://github.com/Integral-Productivity/metawork-ontology/blob/main/docs/adr/0004-one-domain-many-ontologies.md) decision 3, behavior from vertical-development-ontology#6) | `released`, `snapshots`, `ReleaseError` |
 | Every minted IRI maps to a file | `missing_iris`, `check_site`, `ontology-tooling check-iris` |
 | `load()` / `validate()`: ontology merged into the data graph, `inference="none"`, SHACL-SPARQL on | `ontology_tooling.shacl` |
 | Default renderers for SKOS concepts, schemes, ordered collections, SKOS-XL labels, cited sources, and the ontology page | `Site.resource_page`, `Site.ontology_page` |
@@ -31,7 +31,7 @@ the package names a host.
 `requirements.txt`:
 
 ```
-ontology-tooling @ git+https://github.com/Integral-Productivity/ontology-tooling@v0.1.2
+ontology-tooling @ git+https://github.com/Integral-Productivity/ontology-tooling@v0.2.0
 ```
 
 `.github/workflows/pages.yml`:
@@ -44,7 +44,7 @@ on:
   workflow_dispatch:
 jobs:
   pages:
-    uses: Integral-Productivity/ontology-tooling/.github/workflows/pages.yml@v0.1.2
+    uses: Integral-Productivity/ontology-tooling/.github/workflows/pages.yml@v0.2.0
     permissions: { contents: read, pages: write, id-token: write }
     # with:
     #   site-class: site_hooks:MySite          # renderer hooks, in tools/site_hooks.py
@@ -60,7 +60,7 @@ on:
   pull_request:
 jobs:
   validate:
-    uses: Integral-Productivity/ontology-tooling/.github/workflows/validate.yml@v0.1.2
+    uses: Integral-Productivity/ontology-tooling/.github/workflows/validate.yml@v0.2.0
     with:
       examples: |
         examples/valid-groups.ttl

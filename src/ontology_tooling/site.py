@@ -253,18 +253,21 @@ machine-readable: <a href="{e(self.ttl_href)}">{e(self.ttl_href.lstrip("/"))}</a
         """Hook: extra HTML sections on the ontology page, after the schemes and before the schema."""
         return ""
 
-    def ontology_page(self, snapshot: bool = False) -> str:
+    def ontology_page(self, snapshot: bool = False, released: bool = False) -> str:
+        """The ontology page. It links to ``v/<version>/`` only when that snapshot exists:
+        on the snapshot itself, or when the current version is released."""
         title = self.title()
         n = e(self.name)
         ttl = f"/{self.name}/v/{self.version}/{self.name}.ttl" if snapshot else self.ttl_href
+        snap_link = (f'\nVersion {e(self.version)} snapshot: <a href="/{n}/v/{e(self.version)}/">'
+                     f'/{n}/v/{e(self.version)}/</a>.') if snapshot or released else ""
         snap = (f'<p class="warn">This is the snapshot of version {e(self.version)}. The current version is at '
                 f'<a href="/{n}/">/{n}/</a>.</p>') if snapshot else ""
         schemes = self.schemes_html()
         schema = self.schema_html()
         body = f"""<h1>{e(title)}</h1>{snap}<p class="muted">version {e(self.version)} · base <code>{e(self.base)}</code></p>
 <p>{e(self.lit(self.onto, DCTERMS.description))}</p>
-<p>Download: <a href="{e(ttl)}">{e(self.name)}.ttl</a> (Turtle).
-Version {e(self.version)} snapshot: <a href="/{n}/v/{e(self.version)}/">/{n}/v/{e(self.version)}/</a>.</p>
+<p>Download: <a href="{e(ttl)}">{e(self.name)}.ttl</a> (Turtle).{snap_link}</p>
 {f"<h2>Concept schemes</h2>{schemes}" if schemes else ""}{self.ontology_sections()}
 {f"<h2>Schema</h2>{schema}" if schema else ""}"""
         crumbs = self.crumbs(f"v{e(self.version)}") if snapshot else " › ".join([*self.root_crumbs(), e(title)])
