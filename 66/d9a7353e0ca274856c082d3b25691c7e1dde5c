@@ -1,0 +1,21 @@
+.github/workflows/release-pages.yml
+  s_23debac72cb838::t_e16ca400a8c94d 34-35
+tests/test_workflows.py
+  s_23debac72cb838::t_ad0bc6ae5fcc2b 40
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "66d9a7353e0ca274856c082d3b25691c7e1dde5c",
+  "prompts": {},
+  "sessions": {
+    "s_23debac72cb838": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "7566e271-eeae-4c00-a5a5-e28f96adb321",
+        "model": "unknown"
+      },
+      "human_author": "Kraig Parkinson <kraigparkinson@integralproductivity.com>"
+    }
+  }
+}
