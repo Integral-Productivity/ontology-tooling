@@ -31,9 +31,8 @@ on:
         type: string
         default: pages.yml
 
-permissions:
-  contents: read
-
+# No workflow-level permissions: a called workflow may not ask for more than its caller
+# grants, and the caller grants only `actions: write`, which is all the dispatch needs.
 jobs:
   dispatch:
     runs-on: ubuntu-latest

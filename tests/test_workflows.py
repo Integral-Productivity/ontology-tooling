@@ -37,7 +37,7 @@ def test_release_pages_starts_the_callers_pages_on_main_only_for_a_release_tag()
     """#12: a pushed tag vX.Y.Z rebuilds main, where the deploy gate allows it; any other ref does nothing."""
     doc, on = load("release-pages.yml")
     assert set(on) == {"workflow_call"}
-    assert doc["permissions"] == {"contents": "read"}
+    assert "permissions" not in doc  # the caller grants actions: write and nothing else
     (job,) = doc["jobs"].values()
     assert job["permissions"] == {"actions": "write"}
     (step,) = job["steps"]
