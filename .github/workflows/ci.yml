@@ -47,6 +47,15 @@ jobs:
       release-snapshots: false
       deploy: false
 
+  # On a pull request or a push to main this ref is not a release tag, so the call exits
+  # without dispatching; it checks that the workflow loads and its guard holds.
+  release-pages:
+    # This repository's own tags are package releases and it has no dispatchable pages workflow.
+    if: github.ref_type != 'tag'
+    uses: ./.github/workflows/release-pages.yml
+    permissions:
+      actions: write
+
   validate-metawork:
     uses: ./.github/workflows/validate.yml
     with:

@@ -1,0 +1,53 @@
+# Reusable: when a release tag vX.Y.Z is pushed, rebuild the caller's site on main so the
+# tag's /<name>/v/<version>/ snapshot is published (#12).
+#
+# Only tagged versions get a snapshot (#8), and pages.yml deploys only from main, so a tag
+# push alone publishes nothing. This starts the caller's pages workflow on main instead of
+# adding a tag trigger to it, so the main-only deploy gate stays as it is. A
+# workflow_dispatch made with GITHUB_TOKEN does start a run, unlike most events that token
+# triggers. Ported from vertical-development-ontology's release-pages.yml (its issue #13).
+#
+# Caller (pin the same tag here, in pages.yml and in requirements.txt):
+#
+#   name: release-pages
+#   on:
+#     push:
+#       tags: ['v*.*.*']
+#   jobs:
+#     release-pages:
+#       uses: Integral-Productivity/ontology-tooling/.github/workflows/release-pages.yml@<commit> # v0.3.0
+#       permissions:
+#         actions: write
+#
+# The caller's pages workflow must keep `workflow_dispatch:` among its triggers. Push
+# release tags one at a time: GitHub starts no workflow for a push of more than three tags.
+name: release-pages
+
+on:
+  workflow_call:
+    inputs:
+      pages-workflow:
+        description: The caller's pages workflow file, started on main.
+        type: string
+        default: pages.yml
+
+# No workflow-level permissions: a called workflow may not ask for more than its caller
+# grants, and the caller grants only `actions: write`, which is all the dispatch needs.
+jobs:
+  dispatch:
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      PAGES_WORKFLOW: ${{ inputs.pages-workflow }}
+    steps:
+      - name: Run the pages workflow on main after a release tag
+        run: |
+          if [[ ! "$GITHUB_REF" =~ ^refs/tags/v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::notice::$GITHUB_REF is not a release tag vX.Y.Z; nothing to publish."
+            exit 0
+          fi
+          gh workflow run "$PAGES_WORKFLOW" --ref main
+          echo "Started $PAGES_WORKFLOW on main for ${GITHUB_REF#refs/tags/}."

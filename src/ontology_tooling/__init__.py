@@ -4,7 +4,7 @@ from .check import HubRuleError, check_site, hub_rule_violations, missing_iris
 from .shacl import load, validate, validate_files
 from .site import CSS, SKOSXL, Site
 
-__version__ = "0.2.0"
+__version__ = "0.3.0"
 
 __all__ = [
     "CSS", "SKOSXL", "HubRuleError", "ReleaseError", "released", "Site", "build", "check_site", "find_ontology",
