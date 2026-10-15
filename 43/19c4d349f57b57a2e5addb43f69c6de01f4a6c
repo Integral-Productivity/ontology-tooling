@@ -1,0 +1,33 @@
+.github/workflows/ci.yml
+  s_812f5694d0c9ad::t_9893b3dd5720a0 50-58
+.github/workflows/pages.yml
+  s_812f5694d0c9ad::t_c5ab7cf524287a 8
+.github/workflows/release-pages.yml
+  s_812f5694d0c9ad::t_b2b7df85f8136a 1-54
+.github/workflows/validate.yml
+  s_812f5694d0c9ad::t_15df0e3b58bd52 6
+README.md
+  s_812f5694d0c9ad::t_42f5cb4f2b2f42 34,44,47,63,70-90,100-102
+pyproject.toml
+  s_812f5694d0c9ad::t_483482ddb90654 7
+src/ontology_tooling/__init__.py
+  s_812f5694d0c9ad::t_5a5e70fded1ae4 7
+tests/test_workflows.py
+  s_812f5694d0c9ad::t_b6b30121ef8fd4 36-50,61
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "4319c4d349f57b57a2e5addb43f69c6de01f4a6c",
+  "prompts": {},
+  "sessions": {
+    "s_812f5694d0c9ad": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "51d29e36-1b05-4f2c-9524-d97bfb2aa5df",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Kraig Parkinson <kraigparkinson@integralproductivity.com>"
+    }
+  }
+}
