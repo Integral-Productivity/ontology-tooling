@@ -31,7 +31,7 @@ the package names a host.
 `requirements.txt`:
 
 ```
-ontology-tooling @ git+https://github.com/Integral-Productivity/ontology-tooling@v0.2.0
+ontology-tooling @ git+https://github.com/Integral-Productivity/ontology-tooling@v0.3.0
 ```
 
 `.github/workflows/pages.yml`:
@@ -41,10 +41,10 @@ name: pages
 on:
   push: { branches: [main] }
   pull_request:
-  workflow_dispatch:
+  workflow_dispatch:  # release-pages.yml needs it
 jobs:
   pages:
-    uses: Integral-Productivity/ontology-tooling/.github/workflows/pages.yml@v0.2.0
+    uses: Integral-Productivity/ontology-tooling/.github/workflows/pages.yml@v0.3.0
     permissions: { contents: read, pages: write, id-token: write }
     # with:
     #   site-class: site_hooks:MySite          # renderer hooks, in tools/site_hooks.py
@@ -60,14 +60,34 @@ on:
   pull_request:
 jobs:
   validate:
-    uses: Integral-Productivity/ontology-tooling/.github/workflows/validate.yml@v0.2.0
+    uses: Integral-Productivity/ontology-tooling/.github/workflows/validate.yml@v0.3.0
     with:
       examples: |
         examples/valid-groups.ttl
         examples/valid-groups.ttl examples/valid-decisions.ttl
 ```
 
-Pin the same tag in `requirements.txt` and in both `uses:` lines, and bump them together.
+`.github/workflows/release-pages.yml` (publishes a release's snapshot when its tag is pushed):
+
+```yaml
+name: release-pages
+on:
+  push:
+    tags: ['v*.*.*']
+jobs:
+  release-pages:
+    uses: Integral-Productivity/ontology-tooling/.github/workflows/release-pages.yml@v0.3.0
+    permissions:
+      actions: write
+```
+
+Only tagged versions get a snapshot, and `pages.yml` deploys only from `main`. So pushing
+a tag alone publishes nothing until the next push to `main`. `release-pages.yml` starts
+your `pages.yml` on `main` when a `vX.Y.Z` tag is pushed (#12). Keep `workflow_dispatch:`
+among `pages.yml`'s triggers, or the dispatch fails. Push release tags one at a time:
+GitHub starts no workflow for a push of more than three tags.
+
+Pin the same tag in `requirements.txt` and in every `uses:` line, and bump them together.
 
 ### Workflow inputs
 
@@ -76,6 +96,9 @@ Pin the same tag in `requirements.txt` and in both `uses:` lines, and bump them 
 `release-snapshots` (true), `extra-check`, `deploy` (true). The build and IRI check
 run on pull requests and on `main`. The deploy runs only from `main`, never on a pull
 request, and never while the calling repository is private.
+
+`release-pages.yml`: `pages-workflow` (`pages.yml`). Any ref other than a `vX.Y.Z` tag is
+a no-op.
 
 `validate.yml`: `python-version`, `working-directory`, `install`, `ontology`, `shapes`
 (`shapes`), `examples` (one line per data graph that must conform; files on a line are

@@ -33,6 +33,21 @@ def test_build_job_cannot_write_pages():
     assert "permissions" not in doc["jobs"]["build"]
 
 
+def test_release_pages_starts_the_callers_pages_on_main_only_for_a_release_tag():
+    """#12: a pushed tag vX.Y.Z rebuilds main, where the deploy gate allows it; any other ref does nothing."""
+    doc, on = load("release-pages.yml")
+    assert set(on) == {"workflow_call"}
+    assert doc["permissions"] == {"contents": "read"}
+    (job,) = doc["jobs"].values()
+    assert job["permissions"] == {"actions": "write"}
+    (step,) = job["steps"]
+    run = step["run"]
+    assert r"^refs/tags/v[0-9]+\.[0-9]+\.[0-9]+$" in run
+    assert run.index("exit 0") < run.index("gh workflow run")
+    assert 'gh workflow run "$PAGES_WORKFLOW" --ref main' in run
+    assert job["env"]["GH_REPO"] == "${{ github.repository }}"
+
+
 def test_checkouts_fetch_full_history():
     for name in ("pages.yml", "validate.yml"):
         doc, _ = load(name)
@@ -43,7 +58,7 @@ def test_checkouts_fetch_full_history():
 
 
 def test_inputs_reach_shell_only_through_env():
-    for name in ("pages.yml", "validate.yml"):
+    for name in ("pages.yml", "validate.yml", "release-pages.yml"):
         doc, _ = load(name)
         for job in doc["jobs"].values():
             for step in job.get("steps", []):
